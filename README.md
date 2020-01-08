@@ -1,0 +1,2 @@
+# arcli
+Awesome Redmine CLI
