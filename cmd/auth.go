@@ -1,10 +1,19 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
+
+	"github.com/mightymatth/arcli/config"
+
+	"github.com/spf13/viper"
+
+	"github.com/mightymatth/arcli/client"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
@@ -14,73 +23,107 @@ var (
 	hostname, username, password string
 )
 
-var authCmd = &cobra.Command{
-	Use:     "auth",
+var loginCmd = &cobra.Command{
+	Use:     "login",
 	Aliases: []string{"connect"},
-	Short:   "Authenticate to Redmine server",
-	Long:    `Authenticate to Redmine server. Save Redmine API Key for further usage.`,
-	Run:     auth(),
+	Short:   "Authenticate to Redmine server.",
+	Long:    `Authenticate to Redmine server. Save credentials for further usage.`,
+	Run:     loginFunc,
 }
 
-var authInteractive = &cobra.Command{
-	Use:     "interactive",
-	Aliases: []string{"i", "in"},
-	Short:   "Opens login session",
-	PreRun:  handleInteractiveMode(),
-	Run:     auth(),
+var loginIntCmd = &cobra.Command{
+	Use:     "i",
+	Aliases: []string{"interactive", "in"},
+	Short:   "Opens login interactive session.",
+	PreRun:  interactiveLoginInputFunc,
+	Run:     loginFunc,
+}
+
+var logoutCmd = &cobra.Command{
+	Use:     "logout",
+	Aliases: []string{"disconnect"},
+	Short:   "Logout current user.",
+	Long:    "Logout current user from Redmine. It deletes user credentials.",
+	Run:     logoutFunc,
 }
 
 func init() {
-	rootCmd.AddCommand(authCmd)
+	rootCmd.AddCommand(loginCmd)
+	rootCmd.AddCommand(logoutCmd)
 
-	authCmd.Flags().StringVarP(&hostname, "server", "s", "", "Hostname of Redmine server (e.g. host.redmine.org)")
-	authCmd.Flags().StringVarP(&username, "username", "u", "", "Username")
-	authCmd.Flags().StringVarP(&password, "password", "p", "", "Password")
+	loginCmd.Flags().StringVarP(&hostname, "server", "s", "", "Hostname of Redmine server (e.g. host.redmine.org)")
+	loginCmd.Flags().StringVarP(&username, "username", "u", "", "Username")
+	loginCmd.Flags().StringVarP(&password, "password", "p", "", "Password")
 
-	_ = authCmd.MarkFlagRequired("server")
-	_ = authCmd.MarkFlagRequired("username")
-	_ = authCmd.MarkFlagRequired("password")
+	_ = loginCmd.MarkFlagRequired("server")
+	_ = loginCmd.MarkFlagRequired("username")
+	_ = loginCmd.MarkFlagRequired("password")
 
-	authCmd.AddCommand(authInteractive)
+	loginCmd.AddCommand(loginIntCmd)
+
 }
 
-func auth() func(cmd *cobra.Command, args []string) {
-	return func(cmd *cobra.Command, args []string) {
-		fmt.Printf("hostname: %v, username: %v, password: %v\n", hostname, username, password)
-
-		// TODO: Login with API
-		// TODO: Set API key
-		//viper.Set("apiKey", apiKey)
-		//_ = viper.WriteConfig()
+func loginFunc(_ *cobra.Command, _ []string) {
+	viper.Set(config.Hostname, hostname)
+	req, ReqErr := client.RClient.NewAuthRequest(username, password)
+	if ReqErr != nil {
+		log.Fatal("user request ", ReqErr)
 	}
+
+	var userApiResponse *client.UserApiResponse
+	res, ResErr := client.RClient.Do(req, &userApiResponse)
+	var urlError *url.Error
+	if errors.As(ResErr, &urlError) {
+		fmt.Println("You entered wrong hostname!")
+		return
+	}
+
+	switch res.StatusCode {
+	case http.StatusOK:
+		break
+	case http.StatusUnauthorized:
+		fmt.Println("Wrong login credentials!")
+		return
+	default:
+		fmt.Println(fmt.Sprintf("Cannot login user (%v)", res.StatusCode))
+		return
+	}
+
+	user := userApiResponse.User
+	viper.Set(config.ApiKey, user.ApiKey)
+	writeConfigErr := viper.WriteConfig()
+
+	if writeConfigErr != nil {
+		log.Fatal("Unable to save config! :S", writeConfigErr)
+	}
+
+	fmt.Println("You have successfully logged in!")
 }
 
-func handleInteractiveMode() func(cmd *cobra.Command, args []string) {
-	return func(cmd *cobra.Command, args []string) {
-		var err error
-		if !terminal.IsTerminal(0) || !terminal.IsTerminal(1) {
-			fmt.Printf("stdin/stdout should be terminal")
-			return
-		}
-
-		oldState, err := terminal.MakeRaw(int(os.Stdout.Fd()))
-		if err != nil {
-			panic(err)
-		}
-		defer func() {
-			_ = terminal.Restore(int(os.Stdout.Fd()), oldState)
-		}()
-
-		screen := struct {
-			io.Reader
-			io.Writer
-		}{os.Stdin, os.Stdout}
-		t := terminal.NewTerminal(screen, "")
-
-		hostname = AskForText(t, "Hostname: ", false)
-		username = AskForText(t, "Username: ", false)
-		password = AskForText(t, "Password: ", true)
+func interactiveLoginInputFunc(_ *cobra.Command, _ []string) {
+	var err error
+	if !terminal.IsTerminal(0) || !terminal.IsTerminal(1) {
+		fmt.Printf("stdin/stdout should be terminal")
+		return
 	}
+
+	oldState, err := terminal.MakeRaw(int(os.Stdout.Fd()))
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		_ = terminal.Restore(int(os.Stdout.Fd()), oldState)
+	}()
+
+	screen := struct {
+		io.Reader
+		io.Writer
+	}{os.Stdin, os.Stdout}
+	t := terminal.NewTerminal(screen, "")
+
+	hostname = AskForText(t, "Hostname: ", false)
+	username = AskForText(t, "Username: ", false)
+	password = AskForText(t, "Password: ", true)
 }
 
 func AskForText(t *terminal.Terminal, prefix string, hidden bool) string {
@@ -101,4 +144,16 @@ func AskForText(t *terminal.Terminal, prefix string, hidden bool) string {
 	}
 
 	return line
+}
+
+func logoutFunc(_ *cobra.Command, _ []string) {
+	viper.Set(config.ApiKey, "")
+	viper.Set(config.Hostname, "")
+	err := viper.WriteConfig()
+
+	if err != nil {
+		log.Fatal("Unable to save configuration", err)
+	}
+
+	fmt.Println("You have successfully logged out!")
 }
