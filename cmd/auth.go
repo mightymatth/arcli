@@ -121,9 +121,27 @@ func interactiveLoginInputFunc(_ *cobra.Command, _ []string) {
 	}{os.Stdin, os.Stdout}
 	t := terminal.NewTerminal(screen, "")
 
-	hostname = AskForText(t, "Hostname: ", false)
+	hostname = AskForHostname(t)
 	username = AskForText(t, "Username: ", false)
 	password = AskForText(t, "Password: ", true)
+}
+
+func AskForHostname(t *terminal.Terminal) string {
+	previousHost := viper.GetString(config.Hostname)
+	var prefix string
+	if previousHost != "" {
+		prefix = fmt.Sprintf("Hostname (%s): ", previousHost)
+	} else {
+		prefix = fmt.Sprintf("Hostname: ")
+	}
+
+	userInput := AskForText(t, prefix, false)
+
+	if userInput == "" && previousHost != "" {
+		return previousHost
+	}
+
+	return userInput
 }
 
 func AskForText(t *terminal.Terminal, prefix string, hidden bool) string {
@@ -148,7 +166,6 @@ func AskForText(t *terminal.Terminal, prefix string, hidden bool) string {
 
 func logoutFunc(_ *cobra.Command, _ []string) {
 	viper.Set(config.ApiKey, "")
-	viper.Set(config.Hostname, "")
 	err := viper.WriteConfig()
 
 	if err != nil {
