@@ -3,10 +3,10 @@ package client
 import "fmt"
 
 type Issue struct {
-	Id          int64        `json:"id"`
-	Project     ProjectBasic `json:"project"`
-	Subject     string       `json:"subject"`
-	Description string       `json:"description"`
+	Id          int64  `json:"id"`
+	Project     Entity `json:"project"`
+	Subject     string `json:"subject"`
+	Description string `json:"description"`
 }
 
 type IssueResponse struct {

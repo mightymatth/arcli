@@ -24,7 +24,7 @@ var issuesCmd = &cobra.Command{
 
 var myIssuesCmd = &cobra.Command{
 	Use:     "my",
-	Aliases: []string{"assigned"},
+	Aliases: []string{"assigned", "all"},
 	Short:   "List all issues assigned to the user.",
 	Run: func(cmd *cobra.Command, args []string) {
 		issues, err := RClient.GetMyIssues()
@@ -84,7 +84,8 @@ func IssueFunc(_ *cobra.Command, args []string) {
 	issueId, _ := strconv.ParseInt(args[0], 10, 64)
 	issue, err := RClient.GetIssue(issueId)
 	if err != nil {
-		log.Fatal("Cannot fetch issue", err)
+		fmt.Printf("Cannot fetch issue with id %v\n", issueId)
+		return
 	}
 
 	fmt.Printf("[%v] %v\n", text.FgYellow.Sprint(issue.Id), text.FgYellow.Sprint(issue.Project.Name))
