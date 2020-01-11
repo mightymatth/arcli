@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/mightymatth/arcli/config"
 
@@ -64,14 +66,17 @@ func init() {
 }
 
 func loginFunc(_ *cobra.Command, _ []string) {
+	authCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	viper.Set(config.Hostname, hostname)
-	req, ReqErr := client.RClient.NewAuthRequest(username, password)
+	req, ReqErr := RClient.NewAuthRequest(authCtx, username, password)
 	if ReqErr != nil {
 		log.Fatal("user request ", ReqErr)
 	}
 
 	var userApiResponse *client.UserApiResponse
-	res, ResErr := client.RClient.Do(req, &userApiResponse)
+	res, ResErr := RClient.Do(req, &userApiResponse)
 	var urlError *url.Error
 	if errors.As(ResErr, &urlError) {
 		fmt.Println("You entered wrong hostname!")

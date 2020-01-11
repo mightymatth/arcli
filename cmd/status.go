@@ -1,11 +1,12 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 
-	"github.com/mightymatth/arcli/client"
+	"github.com/jedib0t/go-pretty/table"
 	"github.com/spf13/cobra"
+
+	"github.com/mightymatth/arcli/utils"
 )
 
 var statusCmd = &cobra.Command{
@@ -20,13 +21,15 @@ func init() {
 }
 
 func statusFunc(_ *cobra.Command, _ []string) {
-	user, err := client.RClient.GetUser()
+	user, err := RClient.GetUser()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("%-15s%-15v\n", "User ID", user.Id)
-	fmt.Printf("%-15s%-15v\n", "Email", user.Email)
-	fmt.Printf("%-15s%-15v\n", "First name", user.FirstName)
-	fmt.Printf("%-15s%-15v\n", "Last name", user.LastName)
+	t := utils.NewTable()
+	t.AppendRow(table.Row{"User ID", user.Id})
+	t.AppendRow(table.Row{"Email", user.Email})
+	t.AppendRow(table.Row{"First name", user.FirstName})
+	t.AppendRow(table.Row{"Last name", user.LastName})
+	t.Render()
 }

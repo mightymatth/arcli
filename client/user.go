@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 
@@ -22,12 +23,15 @@ type UserApiResponse struct {
 	User User `json:"user"`
 }
 
-func (c *Client) NewAuthRequest(username, password string) (*http.Request, error) {
-	c.BaseURL.Host = viper.GetString(config.Hostname)
-	u := c.BaseURL.ResolveReference(&url.URL{Path: "/users/current.json"})
-	u.User = url.UserPassword(username, password)
+func (c *Client) NewAuthRequest(ctx context.Context, username, password string) (*http.Request, error) {
+	u := url.URL{
+		Scheme: "https",
+		Host:   viper.GetString(config.Hostname),
+		Path:   "/users/current.json",
+		User:   url.UserPassword(username, password),
+	}
 
-	req, err := http.NewRequest("GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +42,7 @@ func (c *Client) NewAuthRequest(username, password string) (*http.Request, error
 }
 
 func (c *Client) GetUser() (*User, error) {
-	req, err := c.newRequest("GET", "/users/current.json", nil)
+	req, err := c.getRequest("/users/current.json", "")
 	if err != nil {
 		return nil, err
 	}
