@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jinzhu/now"
+
 	"github.com/mightymatth/arcli/config"
 
 	"github.com/mightymatth/arcli/client"
@@ -73,7 +75,7 @@ func init() {
 	timeEntriesCmd.AddCommand(timeEntriesDeleteCmd)
 }
 
-var timeNow = time.Now()
+var timeNow = now.EndOfDay()
 
 func timeEntriesListFunc(cmd *cobra.Command, _ []string) {
 	limit := cmd.Flags().Lookup("limit").Value.String()
@@ -86,10 +88,11 @@ func timeEntriesListFunc(cmd *cobra.Command, _ []string) {
 
 	t := utils.NewTable()
 	t.AppendHeader(table.Row{"ID", "Project", "Issue ID",
-		"Activity", "Hours", "Spent on"})
+		"Activity", "Hours", "Spent on", "Comment"})
 	for _, log := range logs {
 		t.AppendRow(table.Row{log.Id, log.Project.Name, log.Issue.Id,
-			log.Activity.Name, log.Hours, RelativeDateString(log.SpentOn)})
+			log.Activity.Name, log.Hours, RelativeDateString(log.SpentOn),
+			log.Comments})
 	}
 
 	t.Render()
@@ -116,7 +119,7 @@ func timeEntriesIssueFunc(_ *cobra.Command, args []string) {
 
 	activities, err := RClient.GetActivities()
 	if err != nil {
-		fmt.Println("cannot get time entry activities")
+		fmt.Println("Cannot get time entry activities")
 		return
 	}
 
@@ -130,7 +133,8 @@ func timeEntriesIssueFunc(_ *cobra.Command, args []string) {
 
 	activityId, exists := activities.Valid(activity)
 	if !exists {
-		fmt.Printf("invalid activity (allowed ones: [%v])", printWithDelimiter(activities.Names()))
+		fmt.Printf("Invalid activity (allowed ones: [%v])",
+			printWithDelimiter(activities.Names()))
 		return
 	}
 
@@ -140,10 +144,11 @@ func timeEntriesIssueFunc(_ *cobra.Command, args []string) {
 	case "yesterday":
 		spentOn = timeNow.AddDate(0, 0, -1).Format(client.DateTimeFormat)
 	default:
-		_, err = time.Parse(`"`+client.DateTimeFormat+`"`, spentOn)
+		_, err = time.Parse(client.DateTimeFormat, spentOn)
 		if err != nil {
-			fmt.Printf("invalid date format (use '%v' instead)",
+			fmt.Printf("Invalid date format (use '%v' instead)\n",
 				client.DateTimeFormat)
+			return
 		}
 	}
 	spentOnTime, _ := time.Parse(client.DateTimeFormat, spentOn)

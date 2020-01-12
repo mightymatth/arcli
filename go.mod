@@ -7,6 +7,7 @@ require (
 	github.com/go-openapi/errors v0.19.3 // indirect
 	github.com/go-openapi/strfmt v0.19.4 // indirect
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
+	github.com/jinzhu/now v1.1.1
 	github.com/mattn/go-runewidth v0.0.7 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v0.0.5
