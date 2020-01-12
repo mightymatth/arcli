@@ -25,11 +25,6 @@ type ProjectResponse struct {
 	Project Project `json:"project"`
 }
 
-type Entity struct {
-	Id   int64  `json:"id"`
-	Name string `json:"name"`
-}
-
 func (c *Client) GetProject(id int64) (*Project, error) {
 	req, err := c.getRequest(fmt.Sprintf("/projects/%v.json", id), "")
 	if err != nil {

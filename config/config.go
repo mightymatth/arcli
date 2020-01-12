@@ -11,9 +11,18 @@ import (
 )
 
 const (
-	ApiKey   = "apikey"
-	Hostname = "hostname"
+	ApiKey      = "apikey"
+	Hostname    = "hostname"
+	DefaultsMap = "defaults"
 )
+
+type DefaultsKey string
+
+const (
+	Activity DefaultsKey = "activity"
+)
+
+var AvailableDefaultsKeys = []string{string(Activity)}
 
 func Setup() {
 	home, err := homedir.Dir()
@@ -37,4 +46,22 @@ func Setup() {
 	if err != nil {
 		log.Fatal("Cannot read in configuration", err)
 	}
+}
+
+func Defaults() map[string]string {
+	return viper.GetStringMapString(DefaultsMap)
+}
+
+func SetDefault(key DefaultsKey, value string) error {
+	defaults := viper.GetStringMapString(DefaultsMap)
+	defaults[string(key)] = value
+
+	viper.Set(DefaultsMap, defaults)
+
+	err := viper.WriteConfig()
+	if err != nil {
+		return fmt.Errorf("unable to write config while adding new default")
+	}
+
+	return nil
 }

@@ -15,14 +15,14 @@ import (
 var projectsCmd = &cobra.Command{
 	Use:     "projects [id]",
 	Args:    ValidProjectArgs(),
-	Aliases: []string{"tasks", "show"},
+	Aliases: []string{"tasks"},
 	Short:   "Shows project details.",
 	Run:     ProjectFunc,
 }
 
 var myProjectsCmd = &cobra.Command{
 	Use:     "my",
-	Aliases: []string{"all"},
+	Aliases: []string{"all", "show"},
 	Short:   "List all projects visible to user.",
 	Run: func(cmd *cobra.Command, args []string) {
 		projects, err := RClient.GetProjects()
