@@ -14,6 +14,7 @@ const (
 	ApiKey      = "apikey"
 	Hostname    = "hostname"
 	DefaultsMap = "defaults"
+	AliasesMap  = "aliases"
 )
 
 type DefaultsKey string
@@ -62,6 +63,35 @@ func SetDefault(key DefaultsKey, value string) error {
 	if err != nil {
 		return fmt.Errorf("unable to write config while adding new default")
 	}
+
+	return nil
+}
+
+func GetAliases() map[string]string {
+	return viper.GetStringMapString(AliasesMap)
+}
+
+func GetAlias(key string) (value string, found bool) {
+	aliases := GetAliases()
+	value, found = aliases[key]
+	return
+}
+
+func SetAlias(key string, value string) error {
+	aliases := GetAliases()
+	defer func() {
+		viper.Set(AliasesMap, aliases)
+		err := viper.WriteConfig()
+		if err != nil {
+			panic("unable to write config while adding new alias")
+		}
+	}()
+
+	if value == "" { // Remove alias if value is empty
+		delete(aliases, key)
+		return nil
+	}
+	aliases[key] = value
 
 	return nil
 }

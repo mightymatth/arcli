@@ -63,12 +63,17 @@ func (c *Client) AddTimeEntry(entry TimeEntryPost) (*TimeEntry, error) {
 	}
 
 	var response TimeEntryResponse
-	_, err = c.Do(req, &response)
+	res, err := c.Do(req, &response)
 	if err != nil {
 		return nil, err
 	}
 
-	return &response.TimeEntry, nil
+	switch res.StatusCode {
+	case http.StatusCreated:
+		return &response.TimeEntry, nil
+	default:
+		return nil, fmt.Errorf("cannot add time entry (status %v)", res.StatusCode)
+	}
 }
 
 func (c *Client) DeleteTimeEntry(id int) error {

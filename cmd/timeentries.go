@@ -18,7 +18,7 @@ import (
 
 var timeEntriesCmd = &cobra.Command{
 	Use:     "log",
-	Aliases: []string{"entries"},
+	Aliases: []string{"l", "entries"},
 	Short:   "Time entries on projects and issues.",
 }
 
@@ -34,11 +34,19 @@ var timeEntriesIssueCmd = &cobra.Command{
 	Args:    ValidIssueArgs(),
 	Aliases: []string{"i"},
 	Short:   "Add time entry to issue.",
-	Run:     timeEntriesIssueFunc,
+	Run:     timeEntriesAddFunc(false),
+}
+
+var timeEntriesProjectCmd = &cobra.Command{
+	Use:     "project [id]",
+	Args:    ValidProjectArgs(),
+	Aliases: []string{"p"},
+	Short:   "Add time entry to project.",
+	Run:     timeEntriesAddFunc(true),
 }
 
 var timeEntriesDeleteCmd = &cobra.Command{
-	Use:     "delete [id]",
+	Use:     "delete [id...]",
 	Args:    ValidDeleteTimeEntryArgs(),
 	Aliases: []string{"remove", "rm", "del"},
 	Short:   "Delete time entry.",
@@ -58,21 +66,23 @@ func init() {
 
 	timeEntriesCmd.AddCommand(timeEntriesListCmd)
 	timeEntriesCmd.AddCommand(timeEntriesIssueCmd)
+	timeEntriesCmd.AddCommand(timeEntriesProjectCmd)
+	timeEntriesCmd.AddCommand(timeEntriesDeleteCmd)
 
 	timeEntriesListCmd.Flags().IntVarP(&limit, "limit", "l", 10,
 		"Limit number of results")
 
-	timeEntriesIssueCmd.Flags().StringVarP(&spentOn, "date", "d", "today",
-		"The date the time was spent ('today', 'yesterday', '2020-01-15')")
-	timeEntriesIssueCmd.Flags().Float32VarP(&hours, "hours", "t", 0,
-		"The number of spent hours")
-	timeEntriesIssueCmd.Flags().StringVarP(&activity, "activity", "a", "",
-		"The name of activity for spent time (this overrides default config value)")
-	timeEntriesIssueCmd.Flags().StringVarP(&comments, "message", "m", "",
-		"Short comment")
-	_ = timeEntriesIssueCmd.MarkFlagRequired("hours")
-
-	timeEntriesCmd.AddCommand(timeEntriesDeleteCmd)
+	for _, cmd := range []*cobra.Command{timeEntriesIssueCmd, timeEntriesProjectCmd} {
+		cmd.Flags().StringVarP(&spentOn, "date", "d", "today",
+			"The date the time was spent ('today', 'yesterday', '2020-01-15')")
+		cmd.Flags().Float32VarP(&hours, "hours", "t", 0,
+			"The number of spent hours")
+		cmd.Flags().StringVarP(&activity, "activity", "a", "",
+			"The name of activity for spent time (this overrides default config value)")
+		cmd.Flags().StringVarP(&comments, "message", "m", "",
+			"Short comment")
+		_ = cmd.MarkFlagRequired("hours")
+	}
 }
 
 var timeNow = now.EndOfDay()
@@ -114,70 +124,103 @@ func RelativeDateString(dateTime client.DateTime) string {
 	}
 }
 
-func timeEntriesIssueFunc(_ *cobra.Command, args []string) {
-	issueId, _ := strconv.ParseInt(args[0], 10, 64)
+func timeEntriesAddFunc(isProject bool) func(cmd *cobra.Command, args []string) {
+	return func(cmd *cobra.Command, args []string) {
+		id, _ := strconv.ParseInt(args[0], 10, 64)
 
-	activities, err := RClient.GetActivities()
-	if err != nil {
-		fmt.Println("Cannot get time entry activities")
-		return
-	}
-
-	if activity == "" {
-		activity = config.Defaults()[string(config.Activity)]
-		if activity == "" {
-			fmt.Println("Provide activity either by flag or setting default.")
-			return
-		}
-	}
-
-	activityId, exists := activities.Valid(activity)
-	if !exists {
-		fmt.Printf("Invalid activity (allowed ones: [%v])",
-			printWithDelimiter(activities.Names()))
-		return
-	}
-
-	switch spentOn {
-	case "today":
-		spentOn = timeNow.Format(client.DateTimeFormat)
-	case "yesterday":
-		spentOn = timeNow.AddDate(0, 0, -1).Format(client.DateTimeFormat)
-	default:
-		_, err = time.Parse(client.DateTimeFormat, spentOn)
+		activities, err := RClient.GetActivities()
 		if err != nil {
-			fmt.Printf("Invalid date format (use '%v' instead)\n",
-				client.DateTimeFormat)
+			fmt.Println("Cannot get time entry activities")
 			return
 		}
-	}
-	spentOnTime, _ := time.Parse(client.DateTimeFormat, spentOn)
 
-	entryPost := client.TimeEntryPost{
-		IssueId:    int(issueId),
-		SpentOn:    *client.NewDateTime(spentOnTime),
-		Hours:      hours,
-		ActivityId: int(activityId),
-		Comments:   comments,
-	}
+		if activity == "" {
+			activity = config.Defaults()[string(config.Activity)]
+			if activity == "" {
+				fmt.Println("Provide activity either by flag or setting default.")
+				return
+			}
+		}
 
-	_, err = RClient.AddTimeEntry(entryPost)
-	if err != nil {
-		fmt.Printf("Cannot create time entry: %v\n", err)
-		return
-	}
+		activityId, exists := activities.Valid(activity)
+		if !exists {
+			fmt.Printf("Invalid activity (allowed ones: [%v])",
+				printWithDelimiter(activities.Names()))
+			return
+		}
 
-	fmt.Println("Time entry created!")
+		switch spentOn {
+		case "today":
+			spentOn = timeNow.Format(client.DateTimeFormat)
+		case "yesterday":
+			spentOn = timeNow.AddDate(0, 0, -1).Format(client.DateTimeFormat)
+		default:
+			_, err = time.Parse(client.DateTimeFormat, spentOn)
+			if err != nil {
+				fmt.Printf("Invalid date format (use '%v' instead)\n",
+					client.DateTimeFormat)
+				return
+			}
+		}
+		spentOnTime, _ := time.Parse(client.DateTimeFormat, spentOn)
+
+		var entryPost *client.TimeEntryPost
+		if isProject {
+			entryPost = &client.TimeEntryPost{
+				ProjectId:  int(id),
+				SpentOn:    *client.NewDateTime(spentOnTime),
+				Hours:      hours,
+				ActivityId: int(activityId),
+				Comments:   comments,
+			}
+		} else {
+			entryPost = &client.TimeEntryPost{
+				IssueId:    int(id),
+				SpentOn:    *client.NewDateTime(spentOnTime),
+				Hours:      hours,
+				ActivityId: int(activityId),
+				Comments:   comments,
+			}
+		}
+
+		_, err = RClient.AddTimeEntry(*entryPost)
+		if err != nil {
+			fmt.Printf("Cannot create time entry: %v\n", err)
+			return
+		}
+
+		fmt.Println("Time entry created!")
+	}
+}
+
+func ValidDeleteTimeEntryArgs() cobra.PositionalArgs {
+	return func(cmd *cobra.Command, args []string) error {
+		err := cobra.MinimumNArgs(1)(cmd, args)
+		if err != nil {
+			return err
+		}
+
+		for _, arg := range args {
+			_, err = strconv.ParseInt(arg, 10, 64)
+			if err != nil {
+				return fmt.Errorf("time entry id must be integer, but given %v", arg)
+			}
+		}
+
+		return nil
+	}
 }
 
 func timeEntriesDeleteFunc(_ *cobra.Command, args []string) {
-	entryId, _ := strconv.ParseInt(args[0], 10, 64)
+	for _, arg := range args {
+		entryId, _ := strconv.ParseInt(arg, 10, 64)
 
-	err := RClient.DeleteTimeEntry(int(entryId))
-	if err != nil {
-		fmt.Println("Cannot delete time entry:", err)
-		return
+		err := RClient.DeleteTimeEntry(int(entryId))
+		if err != nil {
+			fmt.Println("Cannot delete time entry:", err)
+			return
+		}
+
+		fmt.Printf("Time entry with id %v successfully deleted.\n", arg)
 	}
-
-	fmt.Println("Time entry successfully deleted.")
 }

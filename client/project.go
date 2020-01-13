@@ -41,7 +41,7 @@ func (c *Client) GetProject(id int64) (*Project, error) {
 }
 
 func (c *Client) GetProjects() ([]Project, error) {
-	req, err := c.getRequest("/projects.json", "")
+	req, err := c.getRequest("/projects.json", "limit=200")
 	if err != nil {
 		return nil, err
 	}

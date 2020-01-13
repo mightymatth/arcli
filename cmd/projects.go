@@ -5,6 +5,8 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/mightymatth/arcli/config"
+
 	"github.com/jedib0t/go-pretty/text"
 
 	"github.com/mightymatth/arcli/client"
@@ -15,14 +17,14 @@ import (
 var projectsCmd = &cobra.Command{
 	Use:     "projects [id]",
 	Args:    ValidProjectArgs(),
-	Aliases: []string{"tasks"},
+	Aliases: []string{"p", "tasks"},
 	Short:   "Shows project details.",
 	Run:     ProjectFunc,
 }
 
 var myProjectsCmd = &cobra.Command{
 	Use:     "my",
-	Aliases: []string{"all", "show"},
+	Aliases: []string{"all", "show", "ls", "list"},
 	Short:   "List all projects visible to user.",
 	Run: func(cmd *cobra.Command, args []string) {
 		projects, err := RClient.GetProjects()
@@ -57,6 +59,12 @@ func ValidProjectArgs() cobra.PositionalArgs {
 		err := cobra.ExactArgs(1)(cmd, args)
 		if err != nil {
 			return err
+		}
+
+		val, found := config.GetAlias(args[0])
+		if found {
+			args[0] = val
+			return nil
 		}
 
 		_, err = strconv.ParseInt(args[0], 10, 64)
