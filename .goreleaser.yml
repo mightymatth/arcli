@@ -2,20 +2,25 @@
 # Make sure to check the documentation at http://goreleaser.com
 before:
   hooks:
-    # you may remove this if you don't use vgo
-#    - go mod tidy
-    # you may remove this if you don't need go generate
+  # you may remove this if you don't use vgo
+  #    - go mod tidy
+  # you may remove this if you don't need go generate
 #    - go generate ./...
 builds:
-- env:
-  - CGO_ENABLED=0
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
 archives:
-- replacements:
-    darwin: Darwin
-    linux: Linux
-    windows: Windows
-    386: i386
-    amd64: x86_64
+  - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
 checksum:
   name_template: 'checksums.txt'
 snapshot:
@@ -24,5 +29,29 @@ changelog:
   sort: asc
   filters:
     exclude:
-    - '^docs:'
-    - '^test:'
+      - '^docs:'
+      - '^test:'
+
+brews:
+  - github:
+      owner: mightymatth
+      name: arcli
+    homepage: https://github.com/mightymatth/arcli
+    description: "Awesome Redmine CLI"
+    test: |
+      system "#{bin}/arcli --version"
+
+snapcrafts:
+  - summary: Awesome Redmine CLI
+    publish: true # <- this line
+    description: |
+      CLI tool that makes Redmine awesome
+    grade: devel
+    confinement: strict
+    license: MIT
+    plugs:
+      personal-files:
+        read:
+          - $HOME/.arcli.yaml
+        write:
+          - $HOME/.arcli.yaml
