@@ -14,6 +14,7 @@ require (
 	github.com/spf13/viper v1.6.1
 	go.mongodb.org/mongo-driver v1.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20200108215511-5d647ca15757
+	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4
 	golang.org/x/sys v0.0.0-20200107162124-548cf772de50 // indirect
 	golang.org/x/tools v0.0.0-20190328211700-ab21143f2384
 )
