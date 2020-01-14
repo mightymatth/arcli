@@ -2,15 +2,15 @@ package cmd
 
 import (
 	"fmt"
-
-	"github.com/jedib0t/go-pretty/table"
-	"github.com/mightymatth/arcli/utils"
+	"sync"
 
 	"golang.org/x/sync/errgroup"
 
 	"github.com/mightymatth/arcli/client"
 
 	"github.com/spf13/cobra"
+
+	tm "github.com/buger/goterm"
 )
 
 var statusCmd = &cobra.Command{
@@ -24,98 +24,126 @@ func init() {
 	rootCmd.AddCommand(statusCmd)
 }
 
-func statusFunc(_ *cobra.Command, _ []string) {
-	var g errgroup.Group
-	user := make(chan *client.User, 1)
-	today := make(chan float64, 1)
-	yesterday := make(chan float64, 1)
-	thisWeek := make(chan float64, 1)
-	lastWeek := make(chan float64, 1)
-	thisMonth := make(chan float64, 1)
-	lastMonth := make(chan float64, 1)
+type asyncResult struct {
+	Result float64
+	Err    error
+}
 
+func statusFunc(_ *cobra.Command, _ []string) {
+
+	user := "Loading user..."
+	var today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth string
+
+	userResult := make(chan *client.User)
+	todayResult := make(chan asyncResult)
+	yesterdayResult := make(chan asyncResult)
+	thisWeekResult := make(chan asyncResult)
+	lastWeekResult := make(chan asyncResult)
+	thisMonthResult := make(chan asyncResult)
+	lastMonthResult := make(chan asyncResult)
+	asyncResults := []chan asyncResult{todayResult, yesterdayResult, thisWeekResult,
+		lastWeekResult, thisMonthResult, lastMonthResult}
+	refresh := make(chan struct{})
+
+	var g errgroup.Group
 	g.Go(func() error {
 		u, err := RClient.GetUser()
 		if err == nil {
-			user <- u
+			userResult <- u
+		} else {
+			userResult <- nil
 		}
 		return err
 	})
+	g.Go(asyncHoursResult(SpentOnToday, todayResult))
+	g.Go(asyncHoursResult(SpentOnYesterday, yesterdayResult))
+	g.Go(asyncHoursResult(SpentOnThisWeek, thisWeekResult))
+	g.Go(asyncHoursResult(SpentOnLastWeek, lastWeekResult))
+	g.Go(asyncHoursResult(SpentOnThisMonth, thisMonthResult))
+	g.Go(asyncHoursResult(SpentOnLastMonth, lastMonthResult))
 
-	g.Go(func() error {
-		hours, err := getHoursForPeriod(SpentOnToday)
-		if err == nil {
-			today <- hours
+	go func() {
+		saveResult := func(r asyncResult, dest *string) {
+			if r.Err != nil {
+				*dest = "ERR"
+			} else {
+				*dest = fmt.Sprintf("%v", r.Result)
+			}
 		}
-		return err
-	})
+		for i := 0; i < 7; i++ {
+			select {
+			case u := <-userResult:
+				if u == nil {
+					user = "Cannot fetch user."
+				} else {
+					user = fmt.Sprintf("[%d] %s %s (%s)", u.Id, u.FirstName, u.LastName, u.Email)
+				}
+			case r := <-todayResult:
+				saveResult(r, &today)
+			case r := <-yesterdayResult:
+				saveResult(r, &yesterday)
+			case r := <-thisWeekResult:
+				saveResult(r, &thisWeek)
+			case r := <-lastWeekResult:
+				saveResult(r, &lastWeek)
+			case r := <-thisMonthResult:
+				saveResult(r, &thisMonth)
+			case r := <-lastMonthResult:
+				saveResult(r, &lastMonth)
+			}
+			refresh <- struct{}{}
+		}
+		close(refresh)
+	}()
 
-	g.Go(func() error {
-		hours, err := getHoursForPeriod(SpentOnYesterday)
-		if err == nil {
-			yesterday <- hours
-		}
-		return err
-	})
+	drawScreen := func() {
+		_, _ = tm.Println(user)
+		_, _ = tm.Println("PERIOD      ", "HOURS")
+		_, _ = tm.Println("Today       ", today)
+		_, _ = tm.Println("Yesterday   ", yesterday)
+		_, _ = tm.Println("This Week   ", thisWeek)
+		_, _ = tm.Println("Last Week   ", lastWeek)
+		_, _ = tm.Println("This Month  ", thisMonth)
+		_, _ = tm.Println("This Month  ", lastMonth)
+		tm.Flush()
+		tm.MoveCursor(1, -8)
+	}
 
-	g.Go(func() error {
-		hours, err := getHoursForPeriod(SpentOnThisWeek)
-		if err == nil {
-			thisWeek <- hours
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		//tm.Clear()
+		drawScreen()
+		for range refresh {
+			drawScreen()
 		}
-		return err
-	})
-
-	g.Go(func() error {
-		hours, err := getHoursForPeriod(SpentOnLastWeek)
-		if err == nil {
-			lastWeek <- hours
-		}
-		return err
-	})
-
-	g.Go(func() error {
-		hours, err := getHoursForPeriod(SpentOnThisMonth)
-		if err == nil {
-			thisMonth <- hours
-		}
-		return err
-	})
-
-	g.Go(func() error {
-		hours, err := getHoursForPeriod(SpentOnLastMonth)
-		if err == nil {
-			lastMonth <- hours
-		}
-		return err
-	})
+		wg.Done()
+	}()
 
 	err := g.Wait()
-	close(user)
-	close(today)
-	close(yesterday)
-	close(thisWeek)
-	close(lastWeek)
-	close(thisMonth)
-	close(lastMonth)
+	close(userResult)
+	for _, res := range asyncResults {
+		close(res)
+	}
 
 	if err != nil {
 		fmt.Println("Failed to get status:", err)
 		return
 	}
 
-	u := <-user
-	fmt.Printf("[%d] %s %s (%s)\n", u.Id, u.FirstName, u.LastName, u.Email)
+	wg.Wait()
+}
 
-	t := utils.NewTable()
-	t.AppendHeader(table.Row{"Period", "Hours"})
-	t.AppendRow(table.Row{"Today", <-today})
-	t.AppendRow(table.Row{"Yesterday", <-yesterday})
-	t.AppendRow(table.Row{"This week", <-thisWeek})
-	t.AppendRow(table.Row{"This month", <-thisMonth})
-	t.AppendRow(table.Row{"Last week", <-lastWeek})
-	t.AppendRow(table.Row{"Last month", <-lastMonth})
-	t.Render()
+func asyncHoursResult(t TimeSpentOn, ch chan<- asyncResult) func() error {
+	return func() error {
+		hours, err := getHoursForPeriod(t)
+		if err == nil {
+			ch <- asyncResult{Result: hours, Err: nil}
+		} else {
+			ch <- asyncResult{Result: hours, Err: err}
+		}
+		return err
+	}
 }
 
 func getHoursForPeriod(spentOn TimeSpentOn) (float64, error) {

@@ -116,9 +116,6 @@ func interactiveLoginInputFunc(_ *cobra.Command, _ []string) {
 	if err != nil {
 		panic(err)
 	}
-	defer func() {
-		_ = terminal.Restore(int(os.Stdout.Fd()), oldState)
-	}()
 
 	screen := struct {
 		io.Reader
@@ -126,12 +123,18 @@ func interactiveLoginInputFunc(_ *cobra.Command, _ []string) {
 	}{os.Stdin, os.Stdout}
 	t := terminal.NewTerminal(screen, "")
 
-	hostname = AskForHostname(t)
-	username = AskForText(t, "Username: ", false)
-	password = AskForText(t, "Password: ", true)
+	var hostOk, userOk, passOk bool
+	hostname, hostOk = AskForHostname(t)
+	username, userOk = AskForText(t, "Username: ", false)
+	password, passOk = AskForText(t, "Password: ", true)
+
+	_ = terminal.Restore(int(os.Stdout.Fd()), oldState)
+	if !hostOk || !userOk || !passOk {
+		defer os.Exit(1)
+	}
 }
 
-func AskForHostname(t *terminal.Terminal) string {
+func AskForHostname(t *terminal.Terminal) (string, bool) {
 	previousHost := viper.GetString(config.Hostname)
 	var prefix string
 	if previousHost != "" {
@@ -140,16 +143,16 @@ func AskForHostname(t *terminal.Terminal) string {
 		prefix = fmt.Sprintf("Hostname: ")
 	}
 
-	userInput := AskForText(t, prefix, false)
+	userInput, ok := AskForText(t, prefix, false)
 
 	if userInput == "" && previousHost != "" {
-		return previousHost
+		return previousHost, ok
 	}
 
-	return userInput
+	return userInput, ok
 }
 
-func AskForText(t *terminal.Terminal, prefix string, hidden bool) string {
+func AskForText(t *terminal.Terminal, prefix string, hidden bool) (string, bool) {
 	prompt := string(t.Escape.Cyan) + prefix + string(t.Escape.Reset)
 
 	var line string
@@ -163,10 +166,10 @@ func AskForText(t *terminal.Terminal, prefix string, hidden bool) string {
 	}
 
 	if err == io.EOF {
-		log.Fatalln("Exiting!")
+		return line, false
 	}
 
-	return line
+	return line, true
 }
 
 func logoutFunc(_ *cobra.Command, _ []string) {
