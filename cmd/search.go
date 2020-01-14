@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/jedib0t/go-pretty/table"
 	"github.com/spf13/cobra"
@@ -32,10 +31,17 @@ func init() {
 func searchFunc(_ *cobra.Command, args []string) {
 	results, totalCount, err := RClient.GetSearchResults(args[0], searchOffset, searchLimit)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Search failed:", err)
+		return
 	}
 
-	fmt.Printf("Results (%d). Showing from %d. to %d.\n", totalCount, searchOffset+1, searchOffset+len(results))
+	if len(results) == 0 {
+		fmt.Println("No results found.")
+		return
+	}
+
+	fmt.Printf("Found %d results. Showing results from %d. to %d.\n",
+		totalCount, searchOffset+1, searchOffset+len(results))
 
 	t := utils.NewTable()
 	t.AppendHeader(table.Row{"Resource ID", "Title", "URL"})
