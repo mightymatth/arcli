@@ -35,12 +35,17 @@ func (c *Client) GetTimeEntries(queryParams string) ([]TimeEntry, error) {
 	}
 
 	var response TimeEntriesResponse
-	_, err = c.Do(req, &response)
+	res, err := c.Do(req, &response)
 	if err != nil {
 		return nil, err
 	}
 
-	return response.TimeEntries, nil
+	switch res.StatusCode {
+	case http.StatusOK:
+		return response.TimeEntries, nil
+	default:
+		return nil, fmt.Errorf("cannot get time entries (status %v)", res.StatusCode)
+	}
 }
 
 type TimeEntryBody struct {

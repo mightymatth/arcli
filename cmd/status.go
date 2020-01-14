@@ -108,7 +108,7 @@ func statusFunc(_ *cobra.Command, _ []string) {
 	fmt.Printf("[%d] %s %s (%s)\n", u.Id, u.FirstName, u.LastName, u.Email)
 
 	t := utils.NewTable()
-	t.AppendRow(table.Row{"Period", "Hours"})
+	t.AppendHeader(table.Row{"Period", "Hours"})
 	t.AppendRow(table.Row{"Today", <-today})
 	t.AppendRow(table.Row{"Yesterday", <-yesterday})
 	t.AppendRow(table.Row{"This week", <-thisWeek})
