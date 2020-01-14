@@ -25,7 +25,7 @@ func init() {
 	rootCmd.AddCommand(searchCmd)
 
 	searchCmd.Flags().IntVarP(&searchOffset, "offset", "o", 0, "Offset from first result")
-	searchCmd.Flags().IntVarP(&searchLimit, "limit", "l", 25, "Limit of given search results")
+	searchCmd.Flags().IntVarP(&searchLimit, "limit", "l", 5, "Limit of given search results")
 }
 
 func searchFunc(_ *cobra.Command, args []string) {

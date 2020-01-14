@@ -128,3 +128,12 @@ type Entity struct {
 type EntityId struct {
 	Id int64 `json:"id"`
 }
+
+func (e EntityId) String() string {
+	switch e.Id {
+	case 0:
+		return "-"
+	default:
+		return fmt.Sprintf("%v", e.Id)
+	}
+}

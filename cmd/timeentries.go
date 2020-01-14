@@ -100,7 +100,7 @@ func timeEntriesListFunc(cmd *cobra.Command, _ []string) {
 	t.AppendHeader(table.Row{"ID", "Project", "Issue ID",
 		"Activity", "Hours", "Spent on", "Comment"})
 	for _, log := range logs {
-		t.AppendRow(table.Row{log.Id, log.Project.Name, log.Issue.Id,
+		t.AppendRow(table.Row{log.Id, log.Project.Name, log.Issue.String(),
 			log.Activity.Name, log.Hours, RelativeDateString(log.SpentOn),
 			log.Comments})
 	}
