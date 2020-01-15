@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/mightymatth/arcli/config"
@@ -29,7 +28,8 @@ var myProjectsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		projects, err := RClient.GetProjects()
 		if err != nil {
-			log.Fatal("Cannot fetch projects", err)
+			fmt.Println("Cannot fetch projects:", err)
+			return
 		}
 
 		drawProjects(projects)

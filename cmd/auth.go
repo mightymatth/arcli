@@ -72,14 +72,14 @@ func loginFunc(_ *cobra.Command, _ []string) {
 	viper.Set(config.Hostname, hostname)
 	req, ReqErr := RClient.NewAuthRequest(authCtx, username, password)
 	if ReqErr != nil {
-		log.Fatal("user request ", ReqErr)
+		log.Println("User request:", ReqErr)
 	}
 
 	var userApiResponse *client.UserApiResponse
 	res, ResErr := RClient.Do(req, &userApiResponse)
 	var urlError *url.Error
 	if errors.As(ResErr, &urlError) {
-		fmt.Println("You entered wrong hostname!")
+		fmt.Println("User response:", ResErr)
 		return
 	}
 

@@ -2,11 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
-
-	"github.com/mightymatth/arcli/client"
 
 	"github.com/spf13/cobra"
 
@@ -17,151 +16,126 @@ var statusCmd = &cobra.Command{
 	Use:     "status",
 	Aliases: []string{"me"},
 	Short:   "Overall account info",
-	Run:     statusFunc,
+	Long: `Shows user info and statistics of several periods showing: sum of tracked time hours,
+average hours per tracked time, number of issues and number of projects.`,
+	Run: statusFunc,
 }
 
 func init() {
 	rootCmd.AddCommand(statusCmd)
 }
 
-type asyncResult struct {
-	Result float64
-	Err    error
-}
-
 func statusFunc(_ *cobra.Command, _ []string) {
-
 	user := "Loading user..."
 	var today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth string
 
-	userResult := make(chan *client.User)
-	todayResult := make(chan asyncResult)
-	yesterdayResult := make(chan asyncResult)
-	thisWeekResult := make(chan asyncResult)
-	lastWeekResult := make(chan asyncResult)
-	thisMonthResult := make(chan asyncResult)
-	lastMonthResult := make(chan asyncResult)
-	asyncResults := []chan asyncResult{todayResult, yesterdayResult, thisWeekResult,
-		lastWeekResult, thisMonthResult, lastMonthResult}
-	refresh := make(chan struct{})
+	refresh := make(chan struct{}, 7)
 
 	var g errgroup.Group
-	g.Go(func() error {
-		u, err := RClient.GetUser()
-		if err == nil {
-			userResult <- u
-		} else {
-			userResult <- nil
-		}
-		return err
-	})
-	g.Go(asyncHoursResult(SpentOnToday, todayResult))
-	g.Go(asyncHoursResult(SpentOnYesterday, yesterdayResult))
-	g.Go(asyncHoursResult(SpentOnThisWeek, thisWeekResult))
-	g.Go(asyncHoursResult(SpentOnLastWeek, lastWeekResult))
-	g.Go(asyncHoursResult(SpentOnThisMonth, thisMonthResult))
-	g.Go(asyncHoursResult(SpentOnLastMonth, lastMonthResult))
-
-	go func() {
-		saveResult := func(r asyncResult, dest *string) {
-			if r.Err != nil {
-				*dest = "ERR"
-			} else {
-				*dest = fmt.Sprintf("%v", r.Result)
-			}
-		}
-		for i := 0; i < 7; i++ {
-			select {
-			case u := <-userResult:
-				if u == nil {
-					user = "Cannot fetch user."
-				} else {
-					user = fmt.Sprintf("[%d] %s %s (%s)", u.Id, u.FirstName, u.LastName, u.Email)
-				}
-			case r := <-todayResult:
-				saveResult(r, &today)
-			case r := <-yesterdayResult:
-				saveResult(r, &yesterday)
-			case r := <-thisWeekResult:
-				saveResult(r, &thisWeek)
-			case r := <-lastWeekResult:
-				saveResult(r, &lastWeek)
-			case r := <-thisMonthResult:
-				saveResult(r, &thisMonth)
-			case r := <-lastMonthResult:
-				saveResult(r, &lastMonth)
-			}
-			refresh <- struct{}{}
-		}
-		close(refresh)
-	}()
+	g.Go(asyncUserResult(&user, refresh))
+	g.Go(asyncPeriodResult(SpentOnToday, &today, refresh))
+	g.Go(asyncPeriodResult(SpentOnYesterday, &yesterday, refresh))
+	g.Go(asyncPeriodResult(SpentOnThisWeek, &thisWeek, refresh))
+	g.Go(asyncPeriodResult(SpentOnLastWeek, &lastWeek, refresh))
+	g.Go(asyncPeriodResult(SpentOnThisMonth, &thisMonth, refresh))
+	g.Go(asyncPeriodResult(SpentOnLastMonth, &lastMonth, refresh))
 
 	drawScreen := func() {
 		_, _ = tm.Println(user)
-		_, _ = tm.Println("PERIOD      ", "HOURS")
+		_, _ = tm.Println("PERIOD      ", fmt.Sprintf("%-7s %-7s %-8s %-8s",
+			"HOURS", "H/LOG", "# of I", "# of P"))
 		_, _ = tm.Println("Today       ", today)
 		_, _ = tm.Println("Yesterday   ", yesterday)
 		_, _ = tm.Println("This Week   ", thisWeek)
 		_, _ = tm.Println("Last Week   ", lastWeek)
 		_, _ = tm.Println("This Month  ", thisMonth)
-		_, _ = tm.Println("This Month  ", lastMonth)
+		_, _ = tm.Println("Last Month  ", lastMonth)
 		tm.Flush()
-		tm.MoveCursor(1, -8)
+		tm.MoveCursorUp(8)
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(1)
+	var writing sync.WaitGroup
+	writing.Add(1)
 	go func() {
-		//tm.Clear()
 		drawScreen()
 		for range refresh {
 			drawScreen()
 		}
-		wg.Done()
+		writing.Done()
 	}()
 
 	err := g.Wait()
-	close(userResult)
-	for _, res := range asyncResults {
-		close(res)
-	}
+	close(refresh)
+	writing.Wait()
 
 	if err != nil {
 		fmt.Println("Failed to get status:", err)
 		return
 	}
-
-	wg.Wait()
 }
 
-func asyncHoursResult(t TimeSpentOn, ch chan<- asyncResult) func() error {
+func asyncUserResult(dest *string, refresh chan<- struct{}) func() error {
 	return func() error {
-		hours, err := getHoursForPeriod(t)
+		defer func() { refresh <- struct{}{} }()
+
+		u, err := RClient.GetUser()
 		if err == nil {
-			ch <- asyncResult{Result: hours, Err: nil}
+			*dest = fmt.Sprintf("[%d] %s %s (%s)", u.Id, u.FirstName, u.LastName, u.Email)
 		} else {
-			ch <- asyncResult{Result: hours, Err: err}
+			*dest = "Cannot fetch user."
 		}
+
 		return err
 	}
 }
 
-func getHoursForPeriod(spentOn TimeSpentOn) (float64, error) {
-	entries, err := RClient.GetTimeEntries(fmt.Sprintf("spent_on=%s&user_id=me&limit=200", spentOn))
-	if err != nil {
-		return 0, fmt.Errorf("cannot get last month hours: %v", err)
-	}
+func asyncPeriodResult(t TimeSpentOn, dest *string, refresh chan<- struct{}) func() error {
+	return func() error {
+		defer func() { refresh <- struct{}{} }()
 
-	return calculateHours(entries), nil
+		result, err := getDataForPeriod(t)
+		if err == nil {
+			*dest = result
+		} else {
+			*dest = "ERR"
+		}
+
+		return err
+	}
 }
 
-func calculateHours(entries []client.TimeEntry) float64 {
-	var sum float64
-	for _, entry := range entries {
-		sum += entry.Hours
+func getDataForPeriod(spentOn TimeSpentOn) (string, error) {
+	entries, err := RClient.GetTimeEntries(fmt.Sprintf("spent_on=%s&user_id=me&limit=200", spentOn))
+	if err != nil {
+		return "", fmt.Errorf("cannot get period data (%v): %v", spentOn, err)
 	}
 
-	return sum
+	var hoursSum float64
+	issues := make(map[int64]struct{})
+	projects := make(map[int64]struct{})
+
+	for _, entry := range entries {
+		hoursSum += entry.Hours
+		issues[entry.Issue.Id] = struct{}{}
+		projects[entry.Project.Id] = struct{}{}
+	}
+	delete(issues, 0) // time tracked on projects
+
+	issueCount := len(issues)
+	projectCount := len(projects)
+	var hoursAvg float64
+	if len(entries) != 0 {
+		hoursAvg = hoursSum / float64(len(entries))
+	}
+
+	return fmt.Sprintf("%-7s %-7s %-8d %-8d",
+		formatFloat(hoursSum), formatFloat(hoursAvg),
+		issueCount, projectCount), nil
+}
+
+func formatFloat(num float64) string {
+	s := fmt.Sprintf("%.1f", num)
+	return strings.TrimRight(strings.TrimRight(s, "0"), ".")
 }
 
 type TimeSpentOn string

@@ -31,7 +31,8 @@ var myIssuesCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		issues, err := RClient.GetMyIssues()
 		if err != nil {
-			log.Fatal("Cannot fetch my issues", err)
+			fmt.Println("Cannot fetch my issues:", err)
+			return
 		}
 
 		drawIssues(issues)
@@ -44,7 +45,8 @@ var myWatchedIssuesCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		issues, err := RClient.GetMyWatchedIssues()
 		if err != nil {
-			log.Fatal("Cannot fetch watched issues", err)
+			log.Println("Cannot fetch watched issues:", err)
+			return
 		}
 
 		drawIssues(issues)
