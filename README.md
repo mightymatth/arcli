@@ -4,7 +4,8 @@
   <h3 align="center">Awesome Redmine CLI</h3>
 </p>
 
-
+[![Go Report Card](https://goreportcard.com/badge/github.com/mightymatth/arcli)](https://goreportcard.com/report/github.com/mightymatth/arcli)
+[![arcli](https://snapcraft.io//arcli/badge.svg)](https://snapcraft.io/arcli)
 ## About
 
 arcli is CLI for [Redmine](https://www.redmine.org/) that simplifies some actions such as checking for issue details and tracking time. It uses Redmine REST API and should work with any Redmine server which arcli currently supports. 
@@ -19,9 +20,10 @@ $ brew install arcli
 ```
 
 ### Linux
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/arcli)
 
 ```sh
-TODO
+snap install arcli
 ```
 
 ## Usage
