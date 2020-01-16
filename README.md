@@ -9,9 +9,23 @@
 
 arcli is CLI for [Redmine](https://www.redmine.org/) that simplifies some actions such as checking for issue details and tracking time. It uses Redmine REST API and should work with any Redmine server which arcli currently supports. 
 
+## Installation
+
+### macOS
+
+```sh
+$ brew tap mightymatth/arcli https://github.com/mightymatth/arcli
+$ brew install arcli
+```
+
+### Linux
+
+```sh
+TODO
+```
 
 ## Usage
-```bash
+```sh
 ➜  ~ arcli -h
 Client for Redmine. Wrapper around Redmine API
 
