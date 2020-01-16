@@ -77,7 +77,7 @@ func ValidDefaultsAddArgs() cobra.PositionalArgs {
 		if args[0] == string(config.Activity) {
 			activities, err := RClient.GetActivities()
 			if err != nil {
-				return fmt.Errorf("cannot get time entry activities")
+				return fmt.Errorf("cannot get time entry activities: %v", err)
 			}
 
 			_, exists := activities.Valid(args[1])
