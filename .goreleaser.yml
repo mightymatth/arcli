@@ -47,7 +47,7 @@ snapcrafts:
     description: |
       CLI tool that makes Redmine awesome
     grade: devel
-    confinement: strict
+    confinement: devmode
     license: MIT
     plugs:
       personal-files:
