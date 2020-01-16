@@ -46,9 +46,12 @@ snapcrafts:
     publish: true # <- this line
     description: |
       CLI tool that makes Redmine awesome
-    grade: devel
-    confinement: devmode
+    grade: stable
+    confinement: strict
     license: MIT
+    apps:
+      arcli:
+        plugs: ["home", "network", "personal-files"]
     plugs:
       personal-files:
         read:
