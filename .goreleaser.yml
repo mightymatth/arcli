@@ -51,10 +51,5 @@ snapcrafts:
     license: MIT
     apps:
       arcli:
-        plugs: ["home", "network", "personal-files"]
-    plugs:
-      personal-files:
-        read:
-          - $HOME/.arcli.yaml
-        write:
-          - $HOME/.arcli.yaml
+        plugs: ["home", "network"]
+
