@@ -19,13 +19,13 @@ import (
 var timeEntriesCmd = &cobra.Command{
 	Use:     "log",
 	Aliases: []string{"l", "entries"},
-	Short:   "Time entries on projects and issues.",
+	Short:   "Time entries on projects and issues",
 }
 
 var timeEntriesListCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls", "all"},
-	Short:   "List user time entries.",
+	Short:   "List user time entries",
 	Run:     timeEntriesListFunc,
 }
 
@@ -41,7 +41,7 @@ var timeEntriesProjectCmd = &cobra.Command{
 	Use:     "project [id]",
 	Args:    ValidProjectArgs(),
 	Aliases: []string{"p"},
-	Short:   "Add time entry to project.",
+	Short:   "Add time entry to project",
 	Run:     timeEntriesAddFunc(true),
 }
 
@@ -49,7 +49,7 @@ var timeEntriesDeleteCmd = &cobra.Command{
 	Use:     "delete [id...]",
 	Args:    ValidDeleteTimeEntryArgs(),
 	Aliases: []string{"remove", "rm", "del"},
-	Short:   "Delete time entry.",
+	Short:   "Delete time entry",
 	Run:     timeEntriesDeleteFunc,
 }
 
@@ -92,7 +92,7 @@ func timeEntriesListFunc(cmd *cobra.Command, _ []string) {
 	queryParams := fmt.Sprintf("limit=%s&user_id=me", limit)
 	logs, err := RClient.GetTimeEntries(queryParams)
 	if err != nil {
-		fmt.Println("Cannot get time entries")
+		fmt.Println("Cannot get time entries:", err)
 		return
 	}
 
@@ -110,7 +110,7 @@ func timeEntriesListFunc(cmd *cobra.Command, _ []string) {
 
 func RelativeDateString(dateTime client.DateTime) string {
 	durationDays := int(timeNow.Sub(dateTime.Time).Hours() / 24)
-	date := dateTime.Time.Format(client.DateTimeFormat)
+	date := dateTime.Time.Format(client.DayDateFormat)
 
 	switch {
 	case durationDays < 0:
@@ -183,13 +183,14 @@ func timeEntriesAddFunc(isProject bool) func(cmd *cobra.Command, args []string) 
 			}
 		}
 
-		_, err = RClient.AddTimeEntry(*entryPost)
+		entry, err := RClient.AddTimeEntry(*entryPost)
 		if err != nil {
 			fmt.Printf("Cannot create time entry: %v\n", err)
 			return
 		}
 
 		fmt.Println("Time entry created!")
+		entry.PrintTable()
 	}
 }
 

@@ -20,14 +20,14 @@ var issuesCmd = &cobra.Command{
 	Use:     "issues [id]",
 	Args:    ValidIssueArgs(),
 	Aliases: []string{"i", "tasks", "show"},
-	Short:   "Shows issue details.",
+	Short:   "Shows issue details",
 	Run:     IssueFunc,
 }
 
 var myIssuesCmd = &cobra.Command{
 	Use:     "my",
 	Aliases: []string{"assigned", "all", "list", "ls"},
-	Short:   "List all issues assigned to the user.",
+	Short:   "List all issues assigned to the user",
 	Run: func(cmd *cobra.Command, args []string) {
 		issues, err := RClient.GetMyIssues()
 		if err != nil {
@@ -41,7 +41,7 @@ var myIssuesCmd = &cobra.Command{
 
 var myWatchedIssuesCmd = &cobra.Command{
 	Use:   "watched",
-	Short: "List all issues watched by user.",
+	Short: "List all issues watched by user",
 	Run: func(cmd *cobra.Command, args []string) {
 		issues, err := RClient.GetMyWatchedIssues()
 		if err != nil {

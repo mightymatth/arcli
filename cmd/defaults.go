@@ -13,7 +13,7 @@ import (
 
 var defaultsCmd = &cobra.Command{
 	Use:   "defaults",
-	Short: "User session defaults.",
+	Short: "User session defaults",
 }
 
 var defaultsListCmd = &cobra.Command{

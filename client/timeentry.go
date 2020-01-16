@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/jedib0t/go-pretty/table"
+	"github.com/mightymatth/arcli/utils"
 )
 
 type TimeEntry struct {
@@ -18,6 +21,14 @@ type TimeEntry struct {
 	SpentOn   DateTime  `json:"spent_on"`
 	CreatedOn time.Time `json:"created_on"`
 	UpdatedOn time.Time `json:"updated_on"`
+}
+
+func (te TimeEntry) PrintTable() {
+	t := utils.NewTable()
+	t.AppendHeader(table.Row{"ID", "Project", "Issue", "Hours", "Activity", "Comment", "Spent On"})
+	t.AppendRow(table.Row{te.Id, te.Project.Name, te.Issue.String(),
+		te.Hours, te.Activity.Name, te.Comments, te.SpentOn.Format("Mon, 2006-02-01")})
+	t.Render()
 }
 
 type TimeEntriesResponse struct {
@@ -112,6 +123,7 @@ func NewDateTime(time time.Time) *DateTime {
 }
 
 const DateTimeFormat = "2006-01-02"
+const DayDateFormat = "Mon, 2006-02-01"
 
 func (t *DateTime) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {

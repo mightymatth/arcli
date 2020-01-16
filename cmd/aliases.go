@@ -15,7 +15,7 @@ import (
 var aliasesCmd = &cobra.Command{
 	Use:     "aliases",
 	Aliases: []string{"a", "alias"},
-	Short:   "Words that can be used instead of issue or project ids.",
+	Short:   "Words that can be used instead of issue or project ids",
 }
 
 var aliasesListCmd = &cobra.Command{

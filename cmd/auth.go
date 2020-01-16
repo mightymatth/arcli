@@ -28,7 +28,7 @@ var (
 var loginCmd = &cobra.Command{
 	Use:     "login",
 	Aliases: []string{"connect"},
-	Short:   "Authenticate to Redmine server.",
+	Short:   "Authenticate to Redmine server",
 	Long:    `Authenticate to Redmine server. Save credentials for further usage.`,
 	Run:     loginFunc,
 }
@@ -36,7 +36,7 @@ var loginCmd = &cobra.Command{
 var loginIntCmd = &cobra.Command{
 	Use:     "i",
 	Aliases: []string{"interactive", "in"},
-	Short:   "Opens login interactive session.",
+	Short:   "Opens login interactive session",
 	PreRun:  interactiveLoginInputFunc,
 	Run:     loginFunc,
 }
@@ -44,7 +44,7 @@ var loginIntCmd = &cobra.Command{
 var logoutCmd = &cobra.Command{
 	Use:     "logout",
 	Aliases: []string{"disconnect"},
-	Short:   "Logout current user.",
+	Short:   "Logout current user",
 	Long:    "Logout current user from Redmine. It deletes user credentials.",
 	Run:     logoutFunc,
 }
