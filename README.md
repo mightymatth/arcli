@@ -4,7 +4,7 @@
 [![arcli](https://snapcraft.io//arcli/badge.svg)](https://snapcraft.io/arcli)
 
 ### `arcli` - Awesome Redmine CLI
-`arcli` is CLI for [Redmine](https://www.redmine.org/) that simplifies some actions such as checking for issue details and tracking time. It uses Redmine REST API and should work with any Redmine server which arcli currently supports. 
+`arcli` is CLI for [Redmine](https://www.redmine.org/) that simplifies some actions such as checking for issue details and tracking time.  
 
 ## Installation
 
