@@ -25,9 +25,10 @@ snap install arcli
 ## Usage
 ```
 ➜  ~ arcli -h
-Client for Redmine. Wrapper around Redmine API
+Awesome Redmine CLI. Wrapper around Redmine API
 
 Usage:
+  arcli [flags]
   arcli [command]
 
 Available Commands:
@@ -44,7 +45,7 @@ Available Commands:
 
 Flags:
   -h, --help      help for arcli
-      --version   version for arcli
+  -v, --version   Current arcli and supported Redmine API version
 
 Use "arcli [command] --help" for more information about a command.
 ```
