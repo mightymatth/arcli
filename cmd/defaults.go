@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/mightymatth/arcli/config"
 
@@ -71,7 +70,7 @@ func ValidDefaultsAddArgs() cobra.PositionalArgs {
 
 		if !contains(config.AvailableDefaultsKeys, args[0]) {
 			return fmt.Errorf("invalid default (allowed ones: [%v])",
-				printWithDelimiter(config.AvailableDefaultsKeys))
+				utils.PrintWithDelimiter(config.AvailableDefaultsKeys))
 		}
 
 		if args[0] == string(config.Activity) {
@@ -83,7 +82,7 @@ func ValidDefaultsAddArgs() cobra.PositionalArgs {
 			_, exists := activities.Valid(args[1])
 			if !exists {
 				return fmt.Errorf("invalid activity (allowed ones: [%v])",
-					printWithDelimiter(activities.Names()))
+					utils.PrintWithDelimiter(activities.Names()))
 			}
 		}
 
@@ -98,14 +97,4 @@ func contains(a []string, x string) bool {
 		}
 	}
 	return false
-}
-
-func printWithDelimiter(s []string) string {
-	newS := make([]string, 0, len(s))
-
-	for _, val := range s {
-		newS = append(newS, fmt.Sprintf("'%s'", val))
-	}
-
-	return strings.Join(newS, ", ")
 }

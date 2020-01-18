@@ -1,6 +1,7 @@
 package client
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -78,17 +79,29 @@ func (c *Client) AddTimeEntry(entry TimeEntryPost) (*TimeEntry, error) {
 		return nil, err
 	}
 
-	var response TimeEntryResponse
-	res, err := c.Do(req, &response)
+	resp, err := c.HttpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
-	switch res.StatusCode {
+	switch resp.StatusCode {
 	case http.StatusCreated:
-		return &response.TimeEntry, nil
+		var teRes TimeEntryResponse
+		err = json.NewDecoder(resp.Body).Decode(&teRes)
+		if err != nil {
+			return nil, err
+		}
+		return &teRes.TimeEntry, nil
+	case http.StatusUnprocessableEntity:
+		var errRes Error422Response
+		err = json.NewDecoder(resp.Body).Decode(&errRes)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf(utils.PrintWithDelimiter(errRes.Errors))
 	default:
-		return nil, fmt.Errorf("cannot add time entry (status %v)", res.StatusCode)
+		return nil, fmt.Errorf("status %v", resp.StatusCode)
 	}
 }
 

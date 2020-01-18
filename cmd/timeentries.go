@@ -145,7 +145,7 @@ func timeEntriesAddFunc(isProject bool) func(cmd *cobra.Command, args []string) 
 		activityId, exists := activities.Valid(activity)
 		if !exists {
 			fmt.Printf("Invalid activity (allowed ones: [%v])",
-				printWithDelimiter(activities.Names()))
+				utils.PrintWithDelimiter(activities.Names()))
 			return
 		}
 

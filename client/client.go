@@ -137,3 +137,7 @@ func (e EntityId) String() string {
 		return fmt.Sprintf("%v", e.Id)
 	}
 }
+
+type Error422Response struct {
+	Errors []string `json:"errors"`
+}

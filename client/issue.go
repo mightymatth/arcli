@@ -1,6 +1,9 @@
 package client
 
-import "fmt"
+import (
+	"fmt"
+	"net/url"
+)
 
 type Issue struct {
 	Id          int64  `json:"id"`
@@ -53,4 +56,15 @@ func (c *Client) GetIssues(queryParams string) ([]Issue, error) {
 	}
 
 	return response.Issues, nil
+}
+
+func (i *Issue) URL() string {
+	hostname, _ := getCredentials()
+	u := url.URL{
+		Scheme: "https",
+		Host:   hostname,
+		Path:   fmt.Sprintf("/issues/%v", i.Id),
+	}
+
+	return u.String()
 }

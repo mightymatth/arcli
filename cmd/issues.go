@@ -61,9 +61,9 @@ func init() {
 
 func drawIssues(issues []client.Issue) {
 	t := utils.NewTable()
-	t.AppendHeader(table.Row{"ID", "Project", "Subject"})
+	t.AppendHeader(table.Row{"ID", "Project", "Subject", "URL"})
 	for _, issue := range issues {
-		t.AppendRow(table.Row{issue.Id, issue.Project.Name, issue.Subject})
+		t.AppendRow(table.Row{issue.Id, issue.Project.Name, issue.Subject, issue.URL()})
 	}
 
 	t.Render()
@@ -97,8 +97,8 @@ func IssueFunc(_ *cobra.Command, args []string) {
 		fmt.Printf("Cannot fetch issue with id %v\n", issueId)
 		return
 	}
-
-	fmt.Printf("[%v] %v\n", text.FgYellow.Sprint(issue.Id), text.FgYellow.Sprint(issue.Project.Name))
-	fmt.Printf("%v\n", text.FgGreen.Sprint(issue.Subject))
+	project := client.Project{Id: issue.Project.Id, Name: issue.Project.Name}
+	fmt.Printf("[%v] %v (%v)\n", text.FgYellow.Sprint(project.Id), text.FgYellow.Sprint(project.Name), project.URL())
+	fmt.Printf("  [%v] %v (%v)\n", text.FgGreen.Sprint(issue.Id), text.FgGreen.Sprint(issue.Subject), issue.URL())
 	fmt.Printf("%v\n", issue.Description)
 }

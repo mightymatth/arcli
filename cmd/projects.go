@@ -84,6 +84,6 @@ func ProjectFunc(_ *cobra.Command, args []string) {
 	}
 
 	fmt.Printf("[%v] %v\n", text.FgYellow.Sprint(project.Id), text.FgYellow.Sprint(project.Identifier))
-	fmt.Printf("%v\n", text.FgGreen.Sprint(project.Name))
+	fmt.Printf("%v (%v)\n", text.FgGreen.Sprint(project.Name), project.URL())
 	fmt.Printf("%v\n", project.Description)
 }

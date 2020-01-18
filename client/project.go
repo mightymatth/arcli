@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"net/url"
 	"time"
 )
 
@@ -53,4 +54,15 @@ func (c *Client) GetProjects() ([]Project, error) {
 	}
 
 	return response.Projects, nil
+}
+
+func (p *Project) URL() string {
+	hostname, _ := getCredentials()
+	u := url.URL{
+		Scheme: "https",
+		Host:   hostname,
+		Path:   fmt.Sprintf("/projects/%v", p.Id),
+	}
+
+	return u.String()
 }
