@@ -11,15 +11,15 @@ import (
 )
 
 type User struct {
-	Id        int64  `json:"id"`
+	ID        int64  `json:"id"`
 	Username  string `json:"login"`
 	FirstName string `json:"firstname"`
 	LastName  string `json:"lastname"`
 	Email     string `json:"mail"`
-	ApiKey    string `json:"api_key"`
+	APIKey    string `json:"api_key"`
 }
 
-type UserApiResponse struct {
+type UserAPIResponse struct {
 	User User `json:"user"`
 }
 
@@ -46,7 +46,7 @@ func (c *Client) GetUser() (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	var userResponse UserApiResponse
+	var userResponse UserAPIResponse
 	_, err = c.Do(req, &userResponse)
 	if err != nil {
 		return nil, err

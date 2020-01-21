@@ -80,7 +80,7 @@ func asyncUserResult(dest *string, refresh chan<- RefreshData) func() error {
 		u, err := RClient.GetUser()
 		var result string
 		if err == nil {
-			result = fmt.Sprintf("[%d] %s %s (%s)", u.Id, u.FirstName, u.LastName, u.Email)
+			result = fmt.Sprintf("[%d] %s %s (%s)", u.ID, u.FirstName, u.LastName, u.Email)
 		} else {
 			result = "Cannot fetch user."
 		}
@@ -117,8 +117,8 @@ func getDataForPeriod(spentOn TimeSpentOn) (string, error) {
 
 	for _, entry := range entries {
 		hoursSum += entry.Hours
-		issues[entry.Issue.Id] = struct{}{}
-		projects[entry.Project.Id] = struct{}{}
+		issues[entry.Issue.ID] = struct{}{}
+		projects[entry.Project.ID] = struct{}{}
 	}
 	delete(issues, 0) // time tracked on projects
 

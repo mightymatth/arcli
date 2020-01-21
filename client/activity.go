@@ -1,7 +1,7 @@
 package client
 
 type Activity struct {
-	Id   int64  `json:"id"`
+	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -29,15 +29,15 @@ func (c *Client) GetActivities() (Activities, error) {
 func (acts Activities) Valid(name string) (int64, bool) {
 	theMap := make(map[string]int64)
 	for _, activity := range acts {
-		theMap[activity.Name] = activity.Id
+		theMap[activity.Name] = activity.ID
 	}
 
-	activityId, exists := theMap[name]
+	activityID, exists := theMap[name]
 	if !exists {
-		return activityId, false
+		return activityID, false
 	}
 
-	return activityId, true
+	return activityID, true
 }
 
 func (acts Activities) Names() []string {

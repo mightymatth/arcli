@@ -11,11 +11,11 @@ import (
 )
 
 type Version struct {
-	Version, RedmineApiVersion string
+	Version, RedmineAPIVersion string
 }
 
 func (v Version) String() string {
-	return fmt.Sprintf("v%v (Redmine API v%v)", v.Version, v.RedmineApiVersion)
+	return fmt.Sprintf("v%v (Redmine API v%v)", v.Version, v.RedmineAPIVersion)
 }
 
 var (
@@ -41,7 +41,7 @@ var RClient *client.Client
 func Execute(version string) {
 	VERSION = Version{
 		Version:           version,
-		RedmineApiVersion: "3.3",
+		RedmineAPIVersion: "3.3",
 	}
 
 	if err := rootCmd.Execute(); err != nil {
@@ -57,7 +57,7 @@ func init() {
 	cobra.OnInitialize(func() { config.Setup() })
 
 	RClient = &client.Client{
-		HttpClient: &http.Client{},
+		HTTPClient: &http.Client{},
 		UserAgent:  "arcli",
 	}
 }

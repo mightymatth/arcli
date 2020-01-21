@@ -15,7 +15,7 @@ import (
 )
 
 type Client struct {
-	HttpClient *http.Client
+	HTTPClient *http.Client
 	UserAgent  string
 }
 
@@ -94,7 +94,7 @@ func (c *Client) deleteRequest(path string) (*http.Request, error) {
 }
 
 func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
-	resp, err := c.HttpClient.Do(req)
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 
 func getCredentials() (hostname, apiKey string) {
 	hostname = viper.GetString(config.Hostname)
-	apiKey = viper.GetString(config.ApiKey)
+	apiKey = viper.GetString(config.APIKey)
 
 	if hostname == "" || apiKey == "" {
 		fmt.Println("You are not logged in.")
@@ -121,20 +121,20 @@ func getCredentials() (hostname, apiKey string) {
 }
 
 type Entity struct {
-	Id   int64  `json:"id"`
+	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
-type EntityId struct {
-	Id int64 `json:"id"`
+type EntityID struct {
+	ID int64 `json:"id"`
 }
 
-func (e EntityId) String() string {
-	switch e.Id {
+func (e EntityID) String() string {
+	switch e.ID {
 	case 0:
 		return "-"
 	default:
-		return fmt.Sprintf("%v", e.Id)
+		return fmt.Sprintf("%v", e.ID)
 	}
 }
 

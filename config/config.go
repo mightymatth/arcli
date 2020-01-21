@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	ApiKey      = "apikey"
+	APIKey      = "apikey"
 	Hostname    = "hostname"
 	DefaultsMap = "defaults"
 	AliasesMap  = "aliases"

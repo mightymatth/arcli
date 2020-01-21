@@ -7,7 +7,7 @@ import (
 )
 
 type Project struct {
-	Id          int64     `json:"id"`
+	ID          int64     `json:"id"`
 	Name        string    `json:"name"`
 	Identifier  string    `json:"identifier"`
 	Description string    `json:"description"`
@@ -61,7 +61,7 @@ func (p *Project) URL() string {
 	u := url.URL{
 		Scheme: "https",
 		Host:   hostname,
-		Path:   fmt.Sprintf("/projects/%v", p.Id),
+		Path:   fmt.Sprintf("/projects/%v", p.ID),
 	}
 
 	return u.String()

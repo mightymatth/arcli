@@ -63,7 +63,7 @@ func drawIssues(issues []client.Issue) {
 	t := utils.NewTable()
 	t.AppendHeader(table.Row{"ID", "Project", "Subject", "URL"})
 	for _, issue := range issues {
-		t.AppendRow(table.Row{issue.Id, issue.Project.Name, issue.Subject, issue.URL()})
+		t.AppendRow(table.Row{issue.ID, issue.Project.Name, issue.Subject, issue.URL()})
 	}
 
 	t.Render()
@@ -91,14 +91,14 @@ func ValidIssueArgs() cobra.PositionalArgs {
 }
 
 func IssueFunc(_ *cobra.Command, args []string) {
-	issueId, _ := strconv.ParseInt(args[0], 10, 64)
-	issue, err := RClient.GetIssue(issueId)
+	issueID, _ := strconv.ParseInt(args[0], 10, 64)
+	issue, err := RClient.GetIssue(issueID)
 	if err != nil {
-		fmt.Printf("Cannot fetch issue with id %v\n", issueId)
+		fmt.Printf("Cannot fetch issue with id %v\n", issueID)
 		return
 	}
-	project := client.Project{Id: issue.Project.Id, Name: issue.Project.Name}
-	fmt.Printf("[%v] %v (%v)\n", text.FgYellow.Sprint(project.Id), text.FgYellow.Sprint(project.Name), project.URL())
-	fmt.Printf("  [%v] %v (%v)\n", text.FgGreen.Sprint(issue.Id), text.FgGreen.Sprint(issue.Subject), issue.URL())
+	project := client.Project{ID: issue.Project.ID, Name: issue.Project.Name}
+	fmt.Printf("[%v] %v (%v)\n", text.FgYellow.Sprint(project.ID), text.FgYellow.Sprint(project.Name), project.URL())
+	fmt.Printf("  [%v] %v (%v)\n", text.FgGreen.Sprint(issue.ID), text.FgGreen.Sprint(issue.Subject), issue.URL())
 	fmt.Printf("%v\n", issue.Description)
 }

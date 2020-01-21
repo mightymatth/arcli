@@ -75,8 +75,8 @@ func loginFunc(_ *cobra.Command, _ []string) {
 		log.Println("User request:", ReqErr)
 	}
 
-	var userApiResponse *client.UserApiResponse
-	res, ResErr := RClient.Do(req, &userApiResponse)
+	var userAPIResponse *client.UserAPIResponse
+	res, ResErr := RClient.Do(req, &userAPIResponse)
 	var urlError *url.Error
 	if errors.As(ResErr, &urlError) {
 		fmt.Println("User response:", ResErr)
@@ -94,8 +94,8 @@ func loginFunc(_ *cobra.Command, _ []string) {
 		return
 	}
 
-	user := userApiResponse.User
-	viper.Set(config.ApiKey, user.ApiKey)
+	user := userAPIResponse.User
+	viper.Set(config.APIKey, user.APIKey)
 	writeConfigErr := viper.WriteConfig()
 
 	if writeConfigErr != nil {
@@ -173,7 +173,7 @@ func AskForText(t *terminal.Terminal, prefix string, hidden bool) (string, bool)
 }
 
 func logoutFunc(_ *cobra.Command, _ []string) {
-	viper.Set(config.ApiKey, "")
+	viper.Set(config.APIKey, "")
 	err := viper.WriteConfig()
 
 	if err != nil {

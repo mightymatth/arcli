@@ -7,10 +7,10 @@ import (
 )
 
 type SearchItem struct {
-	Id          int    `json:"id"`
+	ID          int    `json:"id"`
 	Title       string `json:"title"`
 	Type        string `json:"type"`
-	Url         string `json:"url"`
+	URL         string `json:"url"`
 	Description string `json:"description"`
 	DateTime    string `json:"datetime"`
 }

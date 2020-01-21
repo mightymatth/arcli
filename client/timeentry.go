@@ -12,9 +12,9 @@ import (
 )
 
 type TimeEntry struct {
-	Id        int64     `json:"id"`
+	ID        int64     `json:"id"`
 	Project   Entity    `json:"project"`
-	Issue     EntityId  `json:"issue"`
+	Issue     EntityID  `json:"issue"`
 	User      Entity    `json:"user"`
 	Activity  Entity    `json:"activity"`
 	Hours     float64   `json:"hours"`
@@ -27,7 +27,7 @@ type TimeEntry struct {
 func (te TimeEntry) PrintTable() {
 	t := utils.NewTable()
 	t.AppendHeader(table.Row{"ID", "Project", "Issue", "Hours", "Activity", "Comment", "Spent On"})
-	t.AppendRow(table.Row{te.Id, te.Project.Name, te.Issue.String(),
+	t.AppendRow(table.Row{te.ID, te.Project.Name, te.Issue.String(),
 		te.Hours, te.Activity.Name, te.Comments, te.SpentOn.Format("Mon, 2006-02-01")})
 	t.Render()
 }
@@ -65,11 +65,11 @@ type TimeEntryBody struct {
 }
 
 type TimeEntryPost struct {
-	IssueId    int      `json:"issue_id,omitempty"`
-	ProjectId  int      `json:"project_id,omitempty"`
+	IssueID    int      `json:"issue_id,omitempty"`
+	ProjectID  int      `json:"project_id,omitempty"`
 	SpentOn    DateTime `json:"spent_on"`
 	Hours      float32  `json:"hours"`
-	ActivityId int      `json:"activity_id"`
+	ActivityID int      `json:"activity_id"`
 	Comments   string   `json:"comments"`
 }
 
@@ -79,7 +79,7 @@ func (c *Client) AddTimeEntry(entry TimeEntryPost) (*TimeEntry, error) {
 		return nil, err
 	}
 
-	resp, err := c.HttpClient.Do(req)
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (c *Client) DeleteTimeEntry(id int) error {
 		return err
 	}
 
-	resp, err := c.HttpClient.Do(req)
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}

@@ -100,7 +100,7 @@ func timeEntriesListFunc(cmd *cobra.Command, _ []string) {
 	t.AppendHeader(table.Row{"ID", "Project", "Issue ID",
 		"Activity", "Hours", "Spent on", "Comment"})
 	for _, log := range logs {
-		t.AppendRow(table.Row{log.Id, log.Project.Name, log.Issue.String(),
+		t.AppendRow(table.Row{log.ID, log.Project.Name, log.Issue.String(),
 			log.Activity.Name, log.Hours, RelativeDateString(log.SpentOn),
 			log.Comments})
 	}
@@ -142,7 +142,7 @@ func timeEntriesAddFunc(isProject bool) func(cmd *cobra.Command, args []string) 
 			}
 		}
 
-		activityId, exists := activities.Valid(activity)
+		activityID, exists := activities.Valid(activity)
 		if !exists {
 			fmt.Printf("Invalid activity (allowed ones: [%v])",
 				utils.PrintWithDelimiter(activities.Names()))
@@ -167,18 +167,18 @@ func timeEntriesAddFunc(isProject bool) func(cmd *cobra.Command, args []string) 
 		var entryPost *client.TimeEntryPost
 		if isProject {
 			entryPost = &client.TimeEntryPost{
-				ProjectId:  int(id),
+				ProjectID:  int(id),
 				SpentOn:    *client.NewDateTime(spentOnTime),
 				Hours:      hours,
-				ActivityId: int(activityId),
+				ActivityID: int(activityID),
 				Comments:   comments,
 			}
 		} else {
 			entryPost = &client.TimeEntryPost{
-				IssueId:    int(id),
+				IssueID:    int(id),
 				SpentOn:    *client.NewDateTime(spentOnTime),
 				Hours:      hours,
-				ActivityId: int(activityId),
+				ActivityID: int(activityID),
 				Comments:   comments,
 			}
 		}
@@ -214,9 +214,9 @@ func ValidDeleteTimeEntryArgs() cobra.PositionalArgs {
 
 func timeEntriesDeleteFunc(_ *cobra.Command, args []string) {
 	for _, arg := range args {
-		entryId, _ := strconv.ParseInt(arg, 10, 64)
+		entryID, _ := strconv.ParseInt(arg, 10, 64)
 
-		err := RClient.DeleteTimeEntry(int(entryId))
+		err := RClient.DeleteTimeEntry(int(entryID))
 		if err != nil {
 			fmt.Println("Cannot delete time entry:", err)
 			return

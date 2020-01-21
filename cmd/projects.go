@@ -44,10 +44,10 @@ func init() {
 func drawProjects(projects []client.Project) {
 	for _, project := range projects {
 		if project.Parent == nil {
-			fmt.Printf("[%v] %v\n", text.FgYellow.Sprint(project.Id),
+			fmt.Printf("[%v] %v\n", text.FgYellow.Sprint(project.ID),
 				text.FgYellow.Sprint(project.Name))
 		} else {
-			fmt.Printf(" ‣ [%v] %v\n", text.FgCyan.Sprint(project.Id),
+			fmt.Printf(" ‣ [%v] %v\n", text.FgCyan.Sprint(project.ID),
 				text.FgCyan.Sprint(project.Name))
 		}
 
@@ -76,14 +76,14 @@ func ValidProjectArgs() cobra.PositionalArgs {
 }
 
 func ProjectFunc(_ *cobra.Command, args []string) {
-	projectId, _ := strconv.ParseInt(args[0], 10, 64)
-	project, err := RClient.GetProject(projectId)
+	projectID, _ := strconv.ParseInt(args[0], 10, 64)
+	project, err := RClient.GetProject(projectID)
 	if err != nil {
-		fmt.Printf("Cannot fetch project with id %v\n", projectId)
+		fmt.Printf("Cannot fetch project with id %v\n", projectID)
 		return
 	}
 
-	fmt.Printf("[%v] %v\n", text.FgYellow.Sprint(project.Id), text.FgYellow.Sprint(project.Identifier))
+	fmt.Printf("[%v] %v\n", text.FgYellow.Sprint(project.ID), text.FgYellow.Sprint(project.Identifier))
 	fmt.Printf("%v (%v)\n", text.FgGreen.Sprint(project.Name), project.URL())
 	fmt.Printf("%v\n", project.Description)
 }

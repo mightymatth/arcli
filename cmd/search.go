@@ -46,7 +46,7 @@ func searchFunc(_ *cobra.Command, args []string) {
 	t := utils.NewTable()
 	t.AppendHeader(table.Row{"Resource ID", "Title", "URL"})
 	for _, result := range results {
-		t.AppendRow(table.Row{result.Id, result.Title, result.Url})
+		t.AppendRow(table.Row{result.ID, result.Title, result.URL})
 	}
 	t.Render()
 }

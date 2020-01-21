@@ -6,7 +6,7 @@ import (
 )
 
 type Issue struct {
-	Id          int64  `json:"id"`
+	ID          int64  `json:"id"`
 	Project     Entity `json:"project"`
 	Subject     string `json:"subject"`
 	Description string `json:"description"`
@@ -63,7 +63,7 @@ func (i *Issue) URL() string {
 	u := url.URL{
 		Scheme: "https",
 		Host:   hostname,
-		Path:   fmt.Sprintf("/issues/%v", i.Id),
+		Path:   fmt.Sprintf("/issues/%v", i.ID),
 	}
 
 	return u.String()
