@@ -2,16 +2,16 @@
 class Arcli < Formula
   desc "Awesome Redmine CLI"
   homepage "https://github.com/mightymatth/arcli"
-  version "0.1.1"
+  version "0.1.2"
   bottle :unneeded
 
   if OS.mac?
-    url "https://github.com/mightymatth/arcli/releases/download/v0.1.1/arcli_Darwin_x86_64.tar.gz"
-    sha256 "f6834bc533347211417334f5cf8469797d8f2cc8bfa740757b5691d19f5b514a"
+    url "https://github.com/mightymatth/arcli/releases/download/v0.1.2/arcli_Darwin_x86_64.tar.gz"
+    sha256 "436d6409344c23cf7886bde807c4875cdaf4bce77159b69a440b0638a59d6dcb"
   elsif OS.linux?
     if Hardware::CPU.intel?
-      url "https://github.com/mightymatth/arcli/releases/download/v0.1.1/arcli_Linux_x86_64.tar.gz"
-      sha256 "931333803556892e84a68797265d4b8ffe985f62a1df9f9a1e626aacbeff2a1a"
+      url "https://github.com/mightymatth/arcli/releases/download/v0.1.2/arcli_Linux_x86_64.tar.gz"
+      sha256 "cc9cd7d3bc26aea5a9c954cf068edb5a33a45a4a89a67519264224c40bfab320"
     end
   end
 
