@@ -5,28 +5,30 @@ import (
 	"net/url"
 )
 
+// Issue correspond with issue in Redmine.
 type Issue struct {
 	ID          int64  `json:"id"`
-	Project     Entity `json:"project"`
+	Project     entity `json:"project"`
 	Subject     string `json:"subject"`
 	Description string `json:"description"`
 }
 
-type IssueResponse struct {
+type issueResponse struct {
 	Issue Issue `json:"issue"`
 }
 
-type IssuesResponse struct {
+type issuesResponse struct {
 	Issues []Issue `json:"issues"`
 }
 
+// GetIssue fetches issue with requested ID.
 func (c *Client) GetIssue(id int64) (*Issue, error) {
 	req, err := c.getRequest(fmt.Sprintf("/issues/%v.json", id), "")
 	if err != nil {
 		return nil, err
 	}
 
-	var response IssueResponse
+	var response issueResponse
 	_, err = c.Do(req, &response)
 	if err != nil {
 		return nil, err
@@ -35,21 +37,24 @@ func (c *Client) GetIssue(id int64) (*Issue, error) {
 	return &response.Issue, nil
 }
 
+// GetMyIssues fetches issues assigned to currently logged user.
 func (c *Client) GetMyIssues() ([]Issue, error) {
 	return c.GetIssues("assigned_to_id=me")
 }
 
+// GetMyWatchedIssues fetches issues that currently logged user watches.
 func (c *Client) GetMyWatchedIssues() ([]Issue, error) {
 	return c.GetIssues("set_filter=1&sort=updated_on%3Adesc&watcher_id=me")
 }
 
+// GetIssues fetches issues with rules defined in queryParams.
 func (c *Client) GetIssues(queryParams string) ([]Issue, error) {
 	req, err := c.getRequest("/issues.json", queryParams)
 	if err != nil {
 		return nil, err
 	}
 
-	var response IssuesResponse
+	var response issuesResponse
 	_, err = c.Do(req, &response)
 	if err != nil {
 		return nil, err
@@ -58,6 +63,7 @@ func (c *Client) GetIssues(queryParams string) ([]Issue, error) {
 	return response.Issues, nil
 }
 
+// URL returns issue URL.
 func (i *Issue) URL() string {
 	hostname, _ := getCredentials()
 	u := url.URL{

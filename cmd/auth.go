@@ -124,9 +124,9 @@ func interactiveLoginInputFunc(_ *cobra.Command, _ []string) {
 	t := terminal.NewTerminal(screen, "")
 
 	var hostOk, userOk, passOk bool
-	hostname, hostOk = AskForHostname(t)
-	username, userOk = AskForText(t, "Username: ", false)
-	password, passOk = AskForText(t, "Password: ", true)
+	hostname, hostOk = askForHostname(t)
+	username, userOk = askForText(t, "Username: ", false)
+	password, passOk = askForText(t, "Password: ", true)
 
 	_ = terminal.Restore(int(os.Stdout.Fd()), oldState)
 	if !hostOk || !userOk || !passOk {
@@ -134,7 +134,7 @@ func interactiveLoginInputFunc(_ *cobra.Command, _ []string) {
 	}
 }
 
-func AskForHostname(t *terminal.Terminal) (string, bool) {
+func askForHostname(t *terminal.Terminal) (string, bool) {
 	previousHost := viper.GetString(config.Hostname)
 	var prefix string
 	if previousHost != "" {
@@ -143,7 +143,7 @@ func AskForHostname(t *terminal.Terminal) (string, bool) {
 		prefix = fmt.Sprintf("Hostname: ")
 	}
 
-	userInput, ok := AskForText(t, prefix, false)
+	userInput, ok := askForText(t, prefix, false)
 
 	if userInput == "" && previousHost != "" {
 		return previousHost, ok
@@ -152,7 +152,7 @@ func AskForHostname(t *terminal.Terminal) (string, bool) {
 	return userInput, ok
 }
 
-func AskForText(t *terminal.Terminal, prefix string, hidden bool) (string, bool) {
+func askForText(t *terminal.Terminal, prefix string, hidden bool) (string, bool) {
 	prompt := string(t.Escape.Cyan) + prefix + string(t.Escape.Reset)
 
 	var line string

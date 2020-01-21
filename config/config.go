@@ -11,20 +11,28 @@ import (
 )
 
 const (
-	APIKey      = "apikey"
-	Hostname    = "hostname"
+	// APIKey is the key of API key in config.
+	APIKey = "apikey"
+	// Hostname is the key of hostname in config.
+	Hostname = "hostname"
+	// DefaultsMap is the key of defaults map in config.
 	DefaultsMap = "defaults"
-	AliasesMap  = "aliases"
+	// AliasesMap is the key of aliases map in config.
+	AliasesMap = "aliases"
 )
 
+// DefaultsKey represents default key.
 type DefaultsKey string
 
 const (
+	// Activity represents Redmine Activity.
 	Activity DefaultsKey = "activity"
 )
 
+// AvailableDefaultsKeys stores all keys that are supported as defaults.
 var AvailableDefaultsKeys = []string{string(Activity)}
 
+// Setup setups permanent configuration in local storage.
 func Setup() {
 	home, err := homedir.Dir()
 	if err != nil {
@@ -49,10 +57,12 @@ func Setup() {
 	}
 }
 
+// Defaults lists all defaults saved to permanent configuration.
 func Defaults() map[string]string {
 	return viper.GetStringMapString(DefaultsMap)
 }
 
+// SetDefault sets default value for given key.
 func SetDefault(key DefaultsKey, value string) error {
 	defaults := viper.GetStringMapString(DefaultsMap)
 	defaults[string(key)] = value
@@ -67,16 +77,19 @@ func SetDefault(key DefaultsKey, value string) error {
 	return nil
 }
 
+// GetAliases gets all stored aliases from permanent configuration.
 func GetAliases() map[string]string {
 	return viper.GetStringMapString(AliasesMap)
 }
 
+// GetAlias gets the alias from permanent configuration.
 func GetAlias(key string) (value string, found bool) {
 	aliases := GetAliases()
 	value, found = aliases[key]
 	return
 }
 
+// SetAlias sets the alias to permanent configuration.
 func SetAlias(key string, value string) error {
 	aliases := GetAliases()
 	defer func() {

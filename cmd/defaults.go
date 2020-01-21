@@ -27,7 +27,7 @@ var defaultsListCmd = &cobra.Command{
 var defaultsAddCmd = &cobra.Command{
 	Use:     "add [defaultName] [value]",
 	Aliases: []string{"set"},
-	Args:    ValidDefaultsAddArgs(),
+	Args:    validDefaultsAddArgs(),
 	Short:   "Add default value",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := config.SetDefault(config.DefaultsKey(args[0]), args[1])
@@ -61,7 +61,7 @@ func drawDefaults(defaults map[string]string) {
 	t.Render()
 }
 
-func ValidDefaultsAddArgs() cobra.PositionalArgs {
+func validDefaultsAddArgs() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
 		err := cobra.ExactArgs(2)(cmd, args)
 		if err != nil {

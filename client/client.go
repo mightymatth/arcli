@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Client is main HTTP client for communication with Redmine server.
 type Client struct {
 	HTTPClient *http.Client
 	UserAgent  string
@@ -93,6 +94,7 @@ func (c *Client) deleteRequest(path string) (*http.Request, error) {
 	return req, nil
 }
 
+// Do does the same as http.Client.Do() but also set response to provided v value.
 func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
@@ -120,16 +122,16 @@ func getCredentials() (hostname, apiKey string) {
 	return
 }
 
-type Entity struct {
+type entity struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
 }
 
-type EntityID struct {
+type entityID struct {
 	ID int64 `json:"id"`
 }
 
-func (e EntityID) String() string {
+func (e entityID) String() string {
 	switch e.ID {
 	case 0:
 		return "-"
@@ -138,6 +140,6 @@ func (e EntityID) String() string {
 	}
 }
 
-type Error422Response struct {
+type error422Response struct {
 	Errors []string `json:"errors"`
 }

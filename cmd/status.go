@@ -29,16 +29,16 @@ func statusFunc(_ *cobra.Command, _ []string) {
 	user := "Loading user..."
 	var today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth string
 
-	refresh := make(chan RefreshData, 7)
+	refresh := make(chan refreshData, 7)
 
 	var g errgroup.Group
 	g.Go(asyncUserResult(&user, refresh))
-	g.Go(asyncPeriodResult(SpentOnToday, &today, refresh))
-	g.Go(asyncPeriodResult(SpentOnYesterday, &yesterday, refresh))
-	g.Go(asyncPeriodResult(SpentOnThisWeek, &thisWeek, refresh))
-	g.Go(asyncPeriodResult(SpentOnLastWeek, &lastWeek, refresh))
-	g.Go(asyncPeriodResult(SpentOnThisMonth, &thisMonth, refresh))
-	g.Go(asyncPeriodResult(SpentOnLastMonth, &lastMonth, refresh))
+	g.Go(asyncPeriodResult(spentOnToday, &today, refresh))
+	g.Go(asyncPeriodResult(spentOnYesterday, &yesterday, refresh))
+	g.Go(asyncPeriodResult(spentOnThisWeek, &thisWeek, refresh))
+	g.Go(asyncPeriodResult(spentOnLastWeek, &lastWeek, refresh))
+	g.Go(asyncPeriodResult(spentOnThisMonth, &thisMonth, refresh))
+	g.Go(asyncPeriodResult(spentOnLastMonth, &lastMonth, refresh))
 
 	drawScreen := func() {
 		_, _ = tm.Println(user)
@@ -75,7 +75,7 @@ func statusFunc(_ *cobra.Command, _ []string) {
 	}
 }
 
-func asyncUserResult(dest *string, refresh chan<- RefreshData) func() error {
+func asyncUserResult(dest *string, refresh chan<- refreshData) func() error {
 	return func() error {
 		u, err := RClient.GetUser()
 		var result string
@@ -84,13 +84,13 @@ func asyncUserResult(dest *string, refresh chan<- RefreshData) func() error {
 		} else {
 			result = "Cannot fetch user."
 		}
-		refresh <- RefreshData{Dest: dest, Value: result}
+		refresh <- refreshData{Dest: dest, Value: result}
 
 		return err
 	}
 }
 
-func asyncPeriodResult(t TimeSpentOn, dest *string, refresh chan<- RefreshData) func() error {
+func asyncPeriodResult(t timeSpentOn, dest *string, refresh chan<- refreshData) func() error {
 	return func() error {
 		data, err := getDataForPeriod(t)
 		var result string
@@ -99,13 +99,13 @@ func asyncPeriodResult(t TimeSpentOn, dest *string, refresh chan<- RefreshData) 
 		} else {
 			result = "ERR"
 		}
-		refresh <- RefreshData{Dest: dest, Value: result}
+		refresh <- refreshData{Dest: dest, Value: result}
 
 		return err
 	}
 }
 
-func getDataForPeriod(spentOn TimeSpentOn) (string, error) {
+func getDataForPeriod(spentOn timeSpentOn) (string, error) {
 	entries, err := RClient.GetTimeEntries(fmt.Sprintf("spent_on=%s&user_id=me&limit=200", spentOn))
 	if err != nil {
 		return "", fmt.Errorf("cannot get period data (%v): %v", spentOn, err)
@@ -139,22 +139,22 @@ func formatFloat(num float64) string {
 	return strings.TrimRight(strings.TrimRight(s, "0"), ".")
 }
 
-type TimeSpentOn string
+type timeSpentOn string
 
 const (
-	SpentOnToday     TimeSpentOn = "t"
-	SpentOnYesterday TimeSpentOn = "ld"
-	SpentOnThisWeek  TimeSpentOn = "w"
-	SpentOnLastWeek  TimeSpentOn = "lw"
-	SpentOnThisMonth TimeSpentOn = "m"
-	SpentOnLastMonth TimeSpentOn = "lm"
+	spentOnToday     timeSpentOn = "t"
+	spentOnYesterday timeSpentOn = "ld"
+	spentOnThisWeek  timeSpentOn = "w"
+	spentOnLastWeek  timeSpentOn = "lw"
+	spentOnThisMonth timeSpentOn = "m"
+	spentOnLastMonth timeSpentOn = "lm"
 )
 
-type RefreshData struct {
+type refreshData struct {
 	Dest  *string
 	Value string
 }
 
-func (rd *RefreshData) update() {
+func (rd *refreshData) update() {
 	*rd.Dest = rd.Value
 }

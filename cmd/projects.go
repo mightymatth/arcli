@@ -15,10 +15,10 @@ import (
 
 var projectsCmd = &cobra.Command{
 	Use:     "projects [id]",
-	Args:    ValidProjectArgs(),
+	Args:    validProjectArgs(),
 	Aliases: []string{"p", "tasks"},
 	Short:   "Shows project details",
-	Run:     ProjectFunc,
+	Run:     projectFunc,
 }
 
 var myProjectsCmd = &cobra.Command{
@@ -54,7 +54,7 @@ func drawProjects(projects []client.Project) {
 	}
 }
 
-func ValidProjectArgs() cobra.PositionalArgs {
+func validProjectArgs() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
 		err := cobra.ExactArgs(1)(cmd, args)
 		if err != nil {
@@ -75,7 +75,7 @@ func ValidProjectArgs() cobra.PositionalArgs {
 	}
 }
 
-func ProjectFunc(_ *cobra.Command, args []string) {
+func projectFunc(_ *cobra.Command, args []string) {
 	projectID, _ := strconv.ParseInt(args[0], 10, 64)
 	project, err := RClient.GetProject(projectID)
 	if err != nil {

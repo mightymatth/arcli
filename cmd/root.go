@@ -10,16 +10,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type Version struct {
+type version struct {
 	Version, RedmineAPIVersion string
 }
 
-func (v Version) String() string {
+func (v version) String() string {
 	return fmt.Sprintf("v%v (Redmine API v%v)", v.Version, v.RedmineAPIVersion)
 }
 
 var (
-	VERSION     Version
+	// VERSION holds version tool version information.
+	VERSION     version
 	versionFlag bool
 )
 
@@ -36,11 +37,13 @@ var rootCmd = &cobra.Command{
 	},
 }
 
+// RClient is shareable Redmine client.
 var RClient *client.Client
 
-func Execute(version string) {
-	VERSION = Version{
-		Version:           version,
+// Execute executes root command.
+func Execute(ver string) {
+	VERSION = version{
+		Version:           ver,
 		RedmineAPIVersion: "3.3",
 	}
 

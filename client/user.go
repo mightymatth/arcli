@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// User represents user model in Redmine.
 type User struct {
 	ID        int64  `json:"id"`
 	Username  string `json:"login"`
@@ -19,10 +20,13 @@ type User struct {
 	APIKey    string `json:"api_key"`
 }
 
+// UserAPIResponse response when user is being fetched.
 type UserAPIResponse struct {
 	User User `json:"user"`
 }
 
+// NewAuthRequest fetches user credentials for given username and password. Method uses
+// simple basic authentication.
 func (c *Client) NewAuthRequest(ctx context.Context, username, password string) (*http.Request, error) {
 	u := url.URL{
 		Scheme: "https",
@@ -41,6 +45,7 @@ func (c *Client) NewAuthRequest(ctx context.Context, username, password string) 
 	return req, nil
 }
 
+// GetUser fetches data of currently logged user.
 func (c *Client) GetUser() (*User, error) {
 	req, err := c.getRequest("/users/current.json", "")
 	if err != nil {

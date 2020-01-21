@@ -18,10 +18,10 @@ import (
 
 var issuesCmd = &cobra.Command{
 	Use:     "issues [id]",
-	Args:    ValidIssueArgs(),
+	Args:    validIssueArgs(),
 	Aliases: []string{"i", "tasks", "show"},
 	Short:   "Shows issue details",
-	Run:     IssueFunc,
+	Run:     issueFunc,
 }
 
 var myIssuesCmd = &cobra.Command{
@@ -69,7 +69,7 @@ func drawIssues(issues []client.Issue) {
 	t.Render()
 }
 
-func ValidIssueArgs() cobra.PositionalArgs {
+func validIssueArgs() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
 		err := cobra.ExactArgs(1)(cmd, args)
 		if err != nil {
@@ -90,7 +90,7 @@ func ValidIssueArgs() cobra.PositionalArgs {
 	}
 }
 
-func IssueFunc(_ *cobra.Command, args []string) {
+func issueFunc(_ *cobra.Command, args []string) {
 	issueID, _ := strconv.ParseInt(args[0], 10, 64)
 	issue, err := RClient.GetIssue(issueID)
 	if err != nil {

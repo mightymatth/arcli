@@ -30,7 +30,7 @@ var aliasesListCmd = &cobra.Command{
 var aliasesAddCmd = &cobra.Command{
 	Use:     "add [aliasName] [id]",
 	Aliases: []string{"set", "new"},
-	Args:    ValidAliasesAddArgs(),
+	Args:    validAliasesAddArgs(),
 	Short:   "Add alias entry",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := config.SetAlias(args[0], args[1])
@@ -45,7 +45,7 @@ var aliasesAddCmd = &cobra.Command{
 var aliasesDeleteCmd = &cobra.Command{
 	Use:     "delete [aliasName]",
 	Aliases: []string{"remove", "rm", "del"},
-	Args:    ValidAliasesDeleteArgs(),
+	Args:    validAliasesDeleteArgs(),
 	Short:   "Remove alias entry",
 	Run: func(cmd *cobra.Command, args []string) {
 		_, found := config.GetAlias(args[0])
@@ -88,7 +88,7 @@ func drawAliases() {
 	t.Render()
 }
 
-func ValidAliasesAddArgs() cobra.PositionalArgs {
+func validAliasesAddArgs() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
 		err := cobra.ExactArgs(2)(cmd, args)
 		if err != nil {
@@ -109,7 +109,7 @@ func ValidAliasesAddArgs() cobra.PositionalArgs {
 	}
 }
 
-func ValidAliasesDeleteArgs() cobra.PositionalArgs {
+func validAliasesDeleteArgs() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
 		err := cobra.ExactArgs(1)(cmd, args)
 		if err != nil {

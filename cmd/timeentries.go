@@ -31,7 +31,7 @@ var timeEntriesListCmd = &cobra.Command{
 
 var timeEntriesIssueCmd = &cobra.Command{
 	Use:     "issue [id]",
-	Args:    ValidIssueArgs(),
+	Args:    validIssueArgs(),
 	Aliases: []string{"i"},
 	Short:   "Add time entry to issue.",
 	Run:     timeEntriesAddFunc(false),
@@ -39,7 +39,7 @@ var timeEntriesIssueCmd = &cobra.Command{
 
 var timeEntriesProjectCmd = &cobra.Command{
 	Use:     "project [id]",
-	Args:    ValidProjectArgs(),
+	Args:    validProjectArgs(),
 	Aliases: []string{"p"},
 	Short:   "Add time entry to project",
 	Run:     timeEntriesAddFunc(true),
@@ -47,7 +47,7 @@ var timeEntriesProjectCmd = &cobra.Command{
 
 var timeEntriesDeleteCmd = &cobra.Command{
 	Use:     "delete [id...]",
-	Args:    ValidDeleteTimeEntryArgs(),
+	Args:    validDeleteTimeEntryArgs(),
 	Aliases: []string{"remove", "rm", "del"},
 	Short:   "Delete time entry",
 	Run:     timeEntriesDeleteFunc,
@@ -101,14 +101,14 @@ func timeEntriesListFunc(cmd *cobra.Command, _ []string) {
 		"Activity", "Hours", "Spent on", "Comment"})
 	for _, log := range logs {
 		t.AppendRow(table.Row{log.ID, log.Project.Name, log.Issue.String(),
-			log.Activity.Name, log.Hours, RelativeDateString(log.SpentOn),
+			log.Activity.Name, log.Hours, relativeDateString(log.SpentOn),
 			log.Comments})
 	}
 
 	t.Render()
 }
 
-func RelativeDateString(dateTime client.DateTime) string {
+func relativeDateString(dateTime client.DateTime) string {
 	durationDays := int(timeNow.Sub(dateTime.Time).Hours() / 24)
 	date := dateTime.Time.Format(client.DayDateFormat)
 
@@ -194,7 +194,7 @@ func timeEntriesAddFunc(isProject bool) func(cmd *cobra.Command, args []string) 
 	}
 }
 
-func ValidDeleteTimeEntryArgs() cobra.PositionalArgs {
+func validDeleteTimeEntryArgs() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
 		err := cobra.MinimumNArgs(1)(cmd, args)
 		if err != nil {
