@@ -29,7 +29,7 @@ func statusFunc(_ *cobra.Command, _ []string) {
 	user := "Loading user..."
 	var today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth string
 
-	refresh := make(chan struct{}, 7)
+	refresh := make(chan RefreshData, 7)
 
 	var g errgroup.Group
 	g.Go(asyncUserResult(&user, refresh))
@@ -58,7 +58,8 @@ func statusFunc(_ *cobra.Command, _ []string) {
 	writing.Add(1)
 	go func() {
 		drawScreen()
-		for range refresh {
+		for refreshData := range refresh {
+			refreshData.update()
 			drawScreen()
 		}
 		writing.Done()
@@ -74,31 +75,31 @@ func statusFunc(_ *cobra.Command, _ []string) {
 	}
 }
 
-func asyncUserResult(dest *string, refresh chan<- struct{}) func() error {
+func asyncUserResult(dest *string, refresh chan<- RefreshData) func() error {
 	return func() error {
-		defer func() { refresh <- struct{}{} }()
-
 		u, err := RClient.GetUser()
+		var result string
 		if err == nil {
-			*dest = fmt.Sprintf("[%d] %s %s (%s)", u.Id, u.FirstName, u.LastName, u.Email)
+			result = fmt.Sprintf("[%d] %s %s (%s)", u.Id, u.FirstName, u.LastName, u.Email)
 		} else {
-			*dest = "Cannot fetch user."
+			result = "Cannot fetch user."
 		}
+		refresh <- RefreshData{Dest: dest, Value: result}
 
 		return err
 	}
 }
 
-func asyncPeriodResult(t TimeSpentOn, dest *string, refresh chan<- struct{}) func() error {
+func asyncPeriodResult(t TimeSpentOn, dest *string, refresh chan<- RefreshData) func() error {
 	return func() error {
-		defer func() { refresh <- struct{}{} }()
-
-		result, err := getDataForPeriod(t)
+		data, err := getDataForPeriod(t)
+		var result string
 		if err == nil {
-			*dest = result
+			result = data
 		} else {
-			*dest = "ERR"
+			result = "ERR"
 		}
+		refresh <- RefreshData{Dest: dest, Value: result}
 
 		return err
 	}
@@ -148,3 +149,12 @@ const (
 	SpentOnThisMonth TimeSpentOn = "m"
 	SpentOnLastMonth TimeSpentOn = "lm"
 )
+
+type RefreshData struct {
+	Dest  *string
+	Value string
+}
+
+func (rd *RefreshData) update() {
+	*rd.Dest = rd.Value
+}
