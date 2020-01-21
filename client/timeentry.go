@@ -118,7 +118,7 @@ func (c *Client) DeleteTimeEntry(id int) error {
 	defer resp.Body.Close()
 
 	switch resp.StatusCode {
-	case http.StatusOK:
+	case http.StatusOK, http.StatusNoContent:
 		return nil
 	case http.StatusNotFound:
 		return fmt.Errorf("there is no time entry with id %v", id)
