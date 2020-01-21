@@ -27,23 +27,24 @@ var (
 
 var loginCmd = &cobra.Command{
 	Use:     "login",
-	Aliases: []string{"connect"},
-	Short:   "Authenticate to Redmine server",
-	Long:    `Authenticate to Redmine server. Save credentials for further usage.`,
+	Aliases: []string{"li"},
+	Args:    cobra.ExactArgs(0),
+	Short:   "Opens login interactive login session",
+	PreRun:  interactiveLoginInputFunc,
 	Run:     loginFunc,
 }
 
-var loginIntCmd = &cobra.Command{
-	Use:     "i",
-	Aliases: []string{"interactive", "in"},
-	Short:   "Opens login interactive session",
-	PreRun:  interactiveLoginInputFunc,
+var loginInlineCmd = &cobra.Command{
+	Use:     "inline",
+	Args:    cobra.ExactArgs(0),
+	Aliases: []string{"i"},
+	Short:   "Authenticate to Redmine server",
 	Run:     loginFunc,
 }
 
 var logoutCmd = &cobra.Command{
 	Use:     "logout",
-	Aliases: []string{"disconnect"},
+	Aliases: []string{"lo", "disconnect"},
 	Short:   "Logout current user",
 	Long:    "Logout current user from Redmine. It deletes user credentials.",
 	Run:     logoutFunc,
@@ -53,16 +54,15 @@ func init() {
 	rootCmd.AddCommand(loginCmd)
 	rootCmd.AddCommand(logoutCmd)
 
-	loginCmd.Flags().StringVarP(&hostname, "server", "s", "", "Hostname of Redmine server (e.g. host.redmine.org)")
-	loginCmd.Flags().StringVarP(&username, "username", "u", "", "Username")
-	loginCmd.Flags().StringVarP(&password, "password", "p", "", "Password")
+	loginInlineCmd.Flags().StringVarP(&hostname, "server", "s", "", "Hostname of Redmine server (e.g. host.redmine.org)")
+	loginInlineCmd.Flags().StringVarP(&username, "username", "u", "", "Username")
+	loginInlineCmd.Flags().StringVarP(&password, "password", "p", "", "Password")
 
-	_ = loginCmd.MarkFlagRequired("server")
-	_ = loginCmd.MarkFlagRequired("username")
-	_ = loginCmd.MarkFlagRequired("password")
+	_ = loginInlineCmd.MarkFlagRequired("server")
+	_ = loginInlineCmd.MarkFlagRequired("username")
+	_ = loginInlineCmd.MarkFlagRequired("password")
 
-	loginCmd.AddCommand(loginIntCmd)
-
+	loginCmd.AddCommand(loginInlineCmd)
 }
 
 func loginFunc(_ *cobra.Command, _ []string) {
