@@ -132,7 +132,7 @@ func (c *Client) AddTimeEntry(entry TimeEntryPost) (*TimeEntry, error) {
 	}
 }
 
-// UpdateTimeEntry adds new time entry.
+// UpdateTimeEntry updates time entry.
 func (c *Client) UpdateTimeEntry(id int, entry TimeEntryPost) error {
 	req, err := c.putRequest(fmt.Sprintf("/time_entries/%d.json", id), timeEntryBody{TimeEntry: entry})
 	if err != nil {
