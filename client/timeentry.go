@@ -28,9 +28,9 @@ type TimeEntry struct {
 // PrintTable prints table in suitable format.
 func (te TimeEntry) PrintTable() {
 	t := utils.NewTable()
-	t.AppendHeader(table.Row{"ID", "Project", "Issue", "Hours", "Activity", "Comment", "Spent On"})
-	t.AppendRow(table.Row{te.ID, te.Project.Name, te.Issue.String(),
-		te.Hours, te.Activity.Name, te.Comments, te.SpentOn.Format("Mon, 2006-02-01")})
+	t.AppendHeader(table.Row{"Entry ID", "Project Name", "Issue ID", "Hours", "Activity", "Comment", "Spent On"})
+	t.AppendRow(table.Row{fmt.Sprint(te.ID), te.Project.Name, te.Issue.String(),
+		fmt.Sprint(te.Hours), te.Activity.Name, te.Comments, te.SpentOn.Format(DayDateFormat)})
 	t.Render()
 }
 
@@ -63,6 +63,27 @@ func (c *Client) GetTimeEntries(queryParams string) ([]TimeEntry, error) {
 	}
 }
 
+// GetTimeEntry fetches time entry for given ID.
+func (c *Client) GetTimeEntry(id int) (*TimeEntry, error) {
+	req, err := c.getRequest(fmt.Sprintf("/time_entries/%d.json", id), "")
+	if err != nil {
+		return nil, err
+	}
+
+	var response timeEntryResponse
+	res, err := c.Do(req, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	switch res.StatusCode {
+	case http.StatusOK:
+		return &response.TimeEntry, nil
+	default:
+		return nil, fmt.Errorf("cannot get time entry (status %v)", res.StatusCode)
+	}
+}
+
 type timeEntryBody struct {
 	TimeEntry TimeEntryPost `json:"time_entry"`
 }
@@ -72,10 +93,10 @@ type timeEntryBody struct {
 type TimeEntryPost struct {
 	IssueID    int      `json:"issue_id,omitempty"`
 	ProjectID  int      `json:"project_id,omitempty"`
-	SpentOn    DateTime `json:"spent_on"`
-	Hours      float32  `json:"hours"`
-	ActivityID int      `json:"activity_id"`
-	Comments   string   `json:"comments"`
+	SpentOn    DateTime `json:"spent_on,omitempty"`
+	Hours      float32  `json:"hours,omitempty"`
+	ActivityID int      `json:"activity_id,omitempty"`
+	Comments   string   `json:"comments,omitempty"`
 }
 
 // AddTimeEntry adds new time entry.
@@ -108,6 +129,34 @@ func (c *Client) AddTimeEntry(entry TimeEntryPost) (*TimeEntry, error) {
 		return nil, fmt.Errorf(utils.PrintWithDelimiter(errRes.Errors))
 	default:
 		return nil, fmt.Errorf("status %v", resp.StatusCode)
+	}
+}
+
+// UpdateTimeEntry adds new time entry.
+func (c *Client) UpdateTimeEntry(id int, entry TimeEntryPost) error {
+	req, err := c.putRequest(fmt.Sprintf("/time_entries/%d.json", id), timeEntryBody{TimeEntry: entry})
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return nil
+	case http.StatusUnprocessableEntity:
+		var errRes error422Response
+		err = json.NewDecoder(resp.Body).Decode(&errRes)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf(utils.PrintWithDelimiter(errRes.Errors))
+	default:
+		return fmt.Errorf("status %v", resp.StatusCode)
 	}
 }
 
@@ -148,7 +197,7 @@ func NewDateTime(time time.Time) *DateTime {
 const DateTimeFormat = "2006-01-02"
 
 // DayDateFormat represents day and date format
-const DayDateFormat = "Mon, 2006-02-01"
+const DayDateFormat = "Mon, 2006-01-02"
 
 // UnmarshalJSON override
 func (t *DateTime) UnmarshalJSON(data []byte) error {

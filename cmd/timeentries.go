@@ -45,9 +45,17 @@ var timeEntriesProjectCmd = &cobra.Command{
 	Run:     timeEntriesAddFunc(true),
 }
 
+var timeEntriesUpdateCmd = &cobra.Command{
+	Use:     "update [id]",
+	Args:    validTimeEntryArgs(),
+	Aliases: []string{"u", "edit", "modify"},
+	Short:   "Update time entry",
+	Run:     timeEntriesUpdateFunc(),
+}
+
 var timeEntriesDeleteCmd = &cobra.Command{
 	Use:     "delete [id...]",
-	Args:    validDeleteTimeEntryArgs(),
+	Args:    validTimeEntryArgs(),
 	Aliases: []string{"remove", "rm", "del"},
 	Short:   "Delete time entry",
 	Run:     timeEntriesDeleteFunc,
@@ -67,12 +75,17 @@ func init() {
 	timeEntriesCmd.AddCommand(timeEntriesListCmd)
 	timeEntriesCmd.AddCommand(timeEntriesIssueCmd)
 	timeEntriesCmd.AddCommand(timeEntriesProjectCmd)
+	timeEntriesCmd.AddCommand(timeEntriesUpdateCmd)
 	timeEntriesCmd.AddCommand(timeEntriesDeleteCmd)
 
 	timeEntriesListCmd.Flags().IntVarP(&limit, "limit", "l", 10,
 		"Limit number of results")
 
-	for _, cmd := range []*cobra.Command{timeEntriesIssueCmd, timeEntriesProjectCmd} {
+	for _, cmd := range []*cobra.Command{
+		timeEntriesIssueCmd,
+		timeEntriesProjectCmd,
+		timeEntriesUpdateCmd,
+	} {
 		cmd.Flags().StringVarP(&spentOn, "date", "d", "today",
 			"The date the time was spent ('today', 'yesterday', '2020-01-15')")
 		cmd.Flags().Float32VarP(&hours, "hours", "t", 0,
@@ -81,6 +94,12 @@ func init() {
 			"The name of activity for spent time (this overrides default config value)")
 		cmd.Flags().StringVarP(&comments, "message", "m", "",
 			"Short comment")
+	}
+
+	for _, cmd := range []*cobra.Command{
+		timeEntriesIssueCmd,
+		timeEntriesProjectCmd,
+	} {
 		_ = cmd.MarkFlagRequired("hours")
 	}
 }
@@ -149,26 +168,17 @@ func timeEntriesAddFunc(isProject bool) func(cmd *cobra.Command, args []string) 
 			return
 		}
 
-		switch spentOn {
-		case "today":
-			spentOn = timeNow.Format(client.DateTimeFormat)
-		case "yesterday":
-			spentOn = timeNow.AddDate(0, 0, -1).Format(client.DateTimeFormat)
-		default:
-			_, err = time.Parse(client.DateTimeFormat, spentOn)
-			if err != nil {
-				fmt.Printf("Invalid date format (use '%v' instead)\n",
-					client.DateTimeFormat)
-				return
-			}
+		spentOnTime, err := spentOnParse(spentOn)
+		if err != nil {
+			fmt.Printf("Cannot parse date value: %v", err)
+			return
 		}
-		spentOnTime, _ := time.Parse(client.DateTimeFormat, spentOn)
 
 		var entryPost *client.TimeEntryPost
 		if isProject {
 			entryPost = &client.TimeEntryPost{
 				ProjectID:  int(id),
-				SpentOn:    *client.NewDateTime(spentOnTime),
+				SpentOn:    *client.NewDateTime(*spentOnTime),
 				Hours:      hours,
 				ActivityID: int(activityID),
 				Comments:   comments,
@@ -176,7 +186,7 @@ func timeEntriesAddFunc(isProject bool) func(cmd *cobra.Command, args []string) 
 		} else {
 			entryPost = &client.TimeEntryPost{
 				IssueID:    int(id),
-				SpentOn:    *client.NewDateTime(spentOnTime),
+				SpentOn:    *client.NewDateTime(*spentOnTime),
 				Hours:      hours,
 				ActivityID: int(activityID),
 				Comments:   comments,
@@ -194,7 +204,7 @@ func timeEntriesAddFunc(isProject bool) func(cmd *cobra.Command, args []string) 
 	}
 }
 
-func validDeleteTimeEntryArgs() cobra.PositionalArgs {
+func validTimeEntryArgs() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
 		err := cobra.MinimumNArgs(1)(cmd, args)
 		if err != nil {
@@ -212,6 +222,64 @@ func validDeleteTimeEntryArgs() cobra.PositionalArgs {
 	}
 }
 
+func timeEntriesUpdateFunc() func(cmd *cobra.Command, args []string) {
+	return func(cmd *cobra.Command, args []string) {
+		entryID, _ := strconv.ParseInt(args[0], 10, 64)
+		var entryUpdate client.TimeEntryPost
+
+		if activity != "" {
+			activities, err := RClient.GetActivities()
+			if err != nil {
+				fmt.Println("Cannot get time entry activities")
+				return
+			}
+
+			activityID, exists := activities.Valid(activity)
+			if !exists {
+				fmt.Printf("Invalid activity (allowed ones: [%v])",
+					utils.PrintWithDelimiter(activities.Names()))
+				return
+			}
+
+			entryUpdate.ActivityID = int(activityID)
+		}
+
+		if spentOn != "" {
+			spentOnTime, err := spentOnParse(spentOn)
+			if err != nil {
+				fmt.Printf("Cannot parse date value: %v", err)
+				return
+			}
+
+			entryUpdate.SpentOn = *client.NewDateTime(*spentOnTime)
+		}
+
+		if cmd.Flags().Changed("message") {
+			if comments == "" {
+				comments = " "
+			}
+			entryUpdate.Comments = comments
+		}
+
+		if hours != 0 {
+			entryUpdate.Hours = hours
+		}
+
+		err := RClient.UpdateTimeEntry(int(entryID), entryUpdate)
+		if err != nil {
+			fmt.Printf("Cannot update time entry: %v\n", err)
+			return
+		}
+		fmt.Println("Time entry updated!")
+
+		updatedEntry, err := RClient.GetTimeEntry(int(entryID))
+		if err != nil {
+			fmt.Printf("Time entry with ID %d cannot be fetched: %v", entryID, err)
+		}
+		updatedEntry.PrintTable()
+	}
+}
+
 func timeEntriesDeleteFunc(_ *cobra.Command, args []string) {
 	for _, arg := range args {
 		entryID, _ := strconv.ParseInt(arg, 10, 64)
@@ -224,4 +292,33 @@ func timeEntriesDeleteFunc(_ *cobra.Command, args []string) {
 
 		fmt.Printf("Time entry with id %v successfully deleted.\n", arg)
 	}
+}
+
+func spentOnModify(spentOn string) (string, error) {
+	var modified string
+	switch spentOn {
+	case "today":
+		modified = timeNow.Format(client.DateTimeFormat)
+	case "yesterday":
+		modified = timeNow.AddDate(0, 0, -1).Format(client.DateTimeFormat)
+	default:
+		_, err := time.Parse(client.DateTimeFormat, spentOn)
+		if err != nil {
+			return "", fmt.Errorf("invalid date format (use '%v' instead)\n",
+				client.DateTimeFormat)
+		}
+		modified = spentOn
+	}
+
+	return modified, nil
+}
+
+func spentOnParse(spentOn string) (*time.Time, error) {
+	modified, err := spentOnModify(spentOn)
+	if err != nil {
+		return nil, err
+	}
+	spentOnTime, _ := time.Parse(client.DateTimeFormat, modified)
+
+	return &spentOnTime, nil
 }
