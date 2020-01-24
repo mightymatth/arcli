@@ -73,6 +73,37 @@ func (c *Client) postRequest(path string, body interface{}) (*http.Request, erro
 	return req, nil
 }
 
+func (c *Client) putRequest(path string, body interface{}) (*http.Request, error) {
+	hostname, apiKey := getCredentials()
+	u := url.URL{
+		Scheme: "https",
+		Host:   hostname,
+		Path:   path,
+	}
+
+	var buf io.ReadWriter
+	if body != nil {
+		buf = new(bytes.Buffer)
+		err := json.NewEncoder(buf).Encode(body)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	req, err := http.NewRequest("PUT", u.String(), buf)
+	if err != nil {
+		return nil, err
+	}
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", c.UserAgent)
+	req.Header.Set("X-Redmine-API-Key", apiKey)
+
+	return req, nil
+}
+
 func (c *Client) deleteRequest(path string) (*http.Request, error) {
 	hostname, apiKey := getCredentials()
 	u := url.URL{
