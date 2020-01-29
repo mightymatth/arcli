@@ -16,57 +16,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var issuesCmd = &cobra.Command{
-	Use:     "issues [id]",
-	Args:    validIssueArgs(),
-	Aliases: []string{"i", "tasks", "show"},
-	Short:   "Shows issue details",
-	Run:     issueFunc,
-}
-
-var myIssuesCmd = &cobra.Command{
-	Use:     "my",
-	Aliases: []string{"assigned", "all", "list", "ls"},
-	Short:   "List all issues assigned to the user",
-	Run: func(cmd *cobra.Command, args []string) {
-		issues, err := RClient.GetMyIssues()
-		if err != nil {
-			fmt.Println("Cannot fetch my issues:", err)
-			return
-		}
-
-		drawIssues(issues)
-	},
-}
-
-var myWatchedIssuesCmd = &cobra.Command{
-	Use:   "watched",
-	Short: "List all issues watched by user",
-	Run: func(cmd *cobra.Command, args []string) {
-		issues, err := RClient.GetMyWatchedIssues()
-		if err != nil {
-			log.Println("Cannot fetch watched issues:", err)
-			return
-		}
-
-		drawIssues(issues)
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(issuesCmd)
-	issuesCmd.AddCommand(myIssuesCmd)
-	issuesCmd.AddCommand(myWatchedIssuesCmd)
-}
-
-func drawIssues(issues []client.Issue) {
-	t := utils.NewTable()
-	t.AppendHeader(table.Row{"ID", "Project", "Subject", "URL"})
-	for _, issue := range issues {
-		t.AppendRow(table.Row{issue.ID, issue.Project.Name, issue.Subject, issue.URL()})
+func newIssuesCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "issues [id]",
+		Args:    validIssueArgs(),
+		Aliases: []string{"i", "tasks", "show"},
+		Short:   "Shows issue details",
+		Run:     issueFunc,
 	}
 
-	t.Render()
+	c.AddCommand(newMyIssuesCmd())
+	c.AddCommand(newMyWatchedIssuesCmd())
+
+	return c
 }
 
 func validIssueArgs() cobra.PositionalArgs {
@@ -101,4 +63,52 @@ func issueFunc(_ *cobra.Command, args []string) {
 	fmt.Printf("[%v] %v (%v)\n", text.FgYellow.Sprint(project.ID), text.FgYellow.Sprint(project.Name), project.URL())
 	fmt.Printf("  [%v] %v (%v)\n", text.FgGreen.Sprint(issue.ID), text.FgGreen.Sprint(issue.Subject), issue.URL())
 	fmt.Printf("%v\n", issue.Description)
+}
+
+func newMyIssuesCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "my",
+		Aliases: []string{"assigned", "all", "list", "ls"},
+		Short:   "List all issues assigned to the user",
+		Run: func(cmd *cobra.Command, args []string) {
+			issues, err := RClient.GetMyIssues()
+			if err != nil {
+				fmt.Println("Cannot fetch my issues:", err)
+				return
+			}
+
+			drawIssues(issues)
+		},
+	}
+
+	return c
+}
+
+func newMyWatchedIssuesCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "watched",
+		Aliases: []string{"w"},
+		Short:   "List all issues watched by user",
+		Run: func(cmd *cobra.Command, args []string) {
+			issues, err := RClient.GetMyWatchedIssues()
+			if err != nil {
+				log.Println("Cannot fetch watched issues:", err)
+				return
+			}
+
+			drawIssues(issues)
+		},
+	}
+
+	return c
+}
+
+func drawIssues(issues []client.Issue) {
+	t := utils.NewTable()
+	t.AppendHeader(table.Row{"ID", "Project", "Subject", "URL"})
+	for _, issue := range issues {
+		t.AppendRow(table.Row{issue.ID, issue.Project.Name, issue.Subject, issue.URL()})
+	}
+
+	t.Render()
 }

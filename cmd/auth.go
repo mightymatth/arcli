@@ -25,44 +25,50 @@ var (
 	hostname, username, password string
 )
 
-var loginCmd = &cobra.Command{
-	Use:     "login",
-	Aliases: []string{"li"},
-	Args:    cobra.ExactArgs(0),
-	Short:   "Opens login interactive login session",
-	PreRun:  interactiveLoginInputFunc,
-	Run:     loginFunc,
+func newLoginCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "login",
+		Aliases: []string{"li"},
+		Args:    cobra.ExactArgs(0),
+		Short:   "Opens login interactive login session",
+		PreRun:  interactiveLoginInputFunc,
+		Run:     loginFunc,
+	}
+
+	c.AddCommand(newLoginInlineCmd())
+
+	return c
 }
 
-var loginInlineCmd = &cobra.Command{
-	Use:     "inline",
-	Args:    cobra.ExactArgs(0),
-	Aliases: []string{"i"},
-	Short:   "Authenticate to Redmine server",
-	Run:     loginFunc,
+func newLoginInlineCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "inline",
+		Args:    cobra.ExactArgs(0),
+		Aliases: []string{"i"},
+		Short:   "Authenticate to Redmine server",
+		Run:     loginFunc,
+	}
+
+	c.Flags().StringVarP(&hostname, "server", "s", "", "Hostname of Redmine server (e.g. host.redmine.org)")
+	c.Flags().StringVarP(&username, "username", "u", "", "Username")
+	c.Flags().StringVarP(&password, "password", "p", "", "Password")
+
+	_ = c.MarkFlagRequired("server")
+	_ = c.MarkFlagRequired("username")
+	_ = c.MarkFlagRequired("password")
+
+	return c
 }
 
-var logoutCmd = &cobra.Command{
-	Use:     "logout",
-	Aliases: []string{"lo", "disconnect"},
-	Short:   "Logout current user",
-	Long:    "Logout current user from Redmine. It deletes user credentials.",
-	Run:     logoutFunc,
-}
+func newLogoutCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:     "logout",
+		Aliases: []string{"lo", "disconnect"},
+		Short:   "Logout current user",
+		Long:    "Logout current user from Redmine. It deletes user credentials.",
+		Run:     logoutFunc,
+	}
 
-func init() {
-	rootCmd.AddCommand(loginCmd)
-	rootCmd.AddCommand(logoutCmd)
-
-	loginInlineCmd.Flags().StringVarP(&hostname, "server", "s", "", "Hostname of Redmine server (e.g. host.redmine.org)")
-	loginInlineCmd.Flags().StringVarP(&username, "username", "u", "", "Username")
-	loginInlineCmd.Flags().StringVarP(&password, "password", "p", "", "Password")
-
-	_ = loginInlineCmd.MarkFlagRequired("server")
-	_ = loginInlineCmd.MarkFlagRequired("username")
-	_ = loginInlineCmd.MarkFlagRequired("password")
-
-	loginCmd.AddCommand(loginInlineCmd)
 }
 
 func loginFunc(_ *cobra.Command, _ []string) {

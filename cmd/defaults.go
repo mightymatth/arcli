@@ -10,55 +10,47 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var defaultsCmd = &cobra.Command{
-	Use:   "defaults",
-	Short: "User session defaults",
-}
-
-var defaultsListCmd = &cobra.Command{
-	Use:     "list",
-	Aliases: []string{"ls", "all"},
-	Short:   "List of all user session defaults",
-	Run: func(cmd *cobra.Command, args []string) {
-		drawDefaults(config.Defaults())
-	},
-}
-
-var defaultsAddCmd = &cobra.Command{
-	Use:     "add [defaultName] [value]",
-	Aliases: []string{"set"},
-	Args:    validDefaultsAddArgs(),
-	Short:   "Add default value",
-	Run: func(cmd *cobra.Command, args []string) {
-		err := config.SetDefault(config.DefaultsKey(args[0]), args[1])
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Printf("'%v: %v' has been successfully added to defaults.\n", args[0], args[1])
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(defaultsCmd)
-	defaultsCmd.AddCommand(defaultsListCmd)
-	defaultsCmd.AddCommand(defaultsAddCmd)
-}
-
-func drawDefaults(defaults map[string]string) {
-	if len(defaults) == 0 {
-		fmt.Println("You have no previously defaults set.")
-		fmt.Printf("These can be set with: '%v'\n", defaultsAddCmd.UseLine())
-		return
+func newDefaultsCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:   "defaults",
+		Short: "User session defaults",
 	}
 
-	t := utils.NewTable()
-	t.AppendHeader(table.Row{"Default entity", "Value"})
-	for key, val := range defaults {
-		t.AppendRow(table.Row{key, val})
+	c.AddCommand(newDefaultsListCmd())
+	c.AddCommand(newDefaultsAddCmd())
+	return c
+}
+
+func newDefaultsListCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "list",
+		Aliases: []string{"ls", "all"},
+		Short:   "List of all user session defaults",
+		Run: func(cmd *cobra.Command, args []string) {
+			drawDefaults(config.Defaults())
+		},
 	}
 
-	t.Render()
+	return c
+}
+
+func newDefaultsAddCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "add [defaultName] [value]",
+		Aliases: []string{"set"},
+		Args:    validDefaultsAddArgs(),
+		Short:   "Add default value",
+		Run: func(cmd *cobra.Command, args []string) {
+			err := config.SetDefault(config.DefaultsKey(args[0]), args[1])
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Printf("'%v: %v' has been successfully added to defaults.\n", args[0], args[1])
+		},
+	}
+
+	return c
 }
 
 func validDefaultsAddArgs() cobra.PositionalArgs {
@@ -88,6 +80,22 @@ func validDefaultsAddArgs() cobra.PositionalArgs {
 
 		return nil
 	}
+}
+
+func drawDefaults(defaults map[string]string) {
+	if len(defaults) == 0 {
+		fmt.Println("You have no previously defaults set.")
+		fmt.Printf("These can be set with: '%v'\n", newDefaultsAddCmd().UseLine())
+		return
+	}
+
+	t := utils.NewTable()
+	t.AppendHeader(table.Row{"Default entity", "Value"})
+	for key, val := range defaults {
+		t.AppendRow(table.Row{key, val})
+	}
+
+	t.Render()
 }
 
 func contains(a []string, x string) bool {

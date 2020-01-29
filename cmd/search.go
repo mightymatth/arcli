@@ -9,24 +9,24 @@ import (
 	"github.com/mightymatth/arcli/utils"
 )
 
-var searchCmd = &cobra.Command{
-	Use:     "search [query]",
-	Aliases: []string{"s"},
-	Args:    cobra.ExactArgs(1),
-	Short:   "Search Redmine",
-	Run:     searchFunc,
+func newSearchCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "search [query]",
+		Aliases: []string{"s"},
+		Args:    cobra.ExactArgs(1),
+		Short:   "Search Redmine",
+		Run:     searchFunc,
+	}
+
+	c.Flags().IntVarP(&searchOffset, "offset", "o", 0, "Offset from first result")
+	c.Flags().IntVarP(&searchLimit, "limit", "l", 5, "Limit of given search results")
+
+	return c
 }
 
 var (
 	searchOffset, searchLimit int
 )
-
-func init() {
-	rootCmd.AddCommand(searchCmd)
-
-	searchCmd.Flags().IntVarP(&searchOffset, "offset", "o", 0, "Offset from first result")
-	searchCmd.Flags().IntVarP(&searchLimit, "limit", "l", 5, "Limit of given search results")
-}
 
 func searchFunc(_ *cobra.Command, args []string) {
 	results, totalCount, err := RClient.GetSearchResults(args[0], searchOffset, searchLimit)

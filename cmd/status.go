@@ -12,17 +12,17 @@ import (
 	tm "github.com/buger/goterm"
 )
 
-var statusCmd = &cobra.Command{
-	Use:     "status",
-	Aliases: []string{"me"},
-	Short:   "Overall account info",
-	Long: `Shows user info and statistics of several periods showing: sum of tracked time hours,
+func newStatusCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "status",
+		Aliases: []string{"me"},
+		Short:   "Overall account info",
+		Long: `Shows user info and statistics of several periods showing: sum of tracked time hours,
 average hours per tracked time, number of issues and number of projects.`,
-	Run: statusFunc,
-}
+		Run: statusFunc,
+	}
 
-func init() {
-	rootCmd.AddCommand(statusCmd)
+	return c
 }
 
 func statusFunc(_ *cobra.Command, _ []string) {

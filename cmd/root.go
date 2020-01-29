@@ -44,7 +44,12 @@ var RClient *client.Client
 func Execute(ver string) {
 	VERSION = version{
 		Version:           ver,
-		RedmineAPIVersion: "3.3",
+		RedmineAPIVersion: "3.3+",
+	}
+
+	RClient = &client.Client{
+		HTTPClient: &http.Client{},
+		UserAgent:  fmt.Sprintf("arcli/v%s", VERSION.Version),
 	}
 
 	if err := rootCmd.Execute(); err != nil {
@@ -59,8 +64,15 @@ func init() {
 
 	cobra.OnInitialize(func() { config.Setup() })
 
-	RClient = &client.Client{
-		HTTPClient: &http.Client{},
-		UserAgent:  "arcli",
-	}
+	rootCmd.AddCommand(
+		newTimeEntriesCmd(),
+		newStatusCmd(),
+		newSearchCmd(),
+		newProjectsCmd(),
+		newIssuesCmd(),
+		newLoginCmd(),
+		newLogoutCmd(),
+		newAliasesCmd(),
+		newDefaultsCmd(),
+	)
 }

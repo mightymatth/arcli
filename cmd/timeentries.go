@@ -16,51 +16,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var timeEntriesCmd = &cobra.Command{
-	Use:     "log",
-	Aliases: []string{"l", "entries"},
-	Short:   "Time entries on projects and issues",
-}
-
-var timeEntriesListCmd = &cobra.Command{
-	Use:     "list",
-	Aliases: []string{"ls", "all"},
-	Short:   "List user time entries",
-	Run:     timeEntriesListFunc,
-}
-
-var timeEntriesIssueCmd = &cobra.Command{
-	Use:     "issue [id]",
-	Args:    validIssueArgs(),
-	Aliases: []string{"i"},
-	Short:   "Add time entry to issue.",
-	Run:     timeEntriesAddFunc(false),
-}
-
-var timeEntriesProjectCmd = &cobra.Command{
-	Use:     "project [id]",
-	Args:    validProjectArgs(),
-	Aliases: []string{"p"},
-	Short:   "Add time entry to project",
-	Run:     timeEntriesAddFunc(true),
-}
-
-var timeEntriesUpdateCmd = &cobra.Command{
-	Use:     "update [id]",
-	Args:    validTimeEntryArgs(),
-	Aliases: []string{"u", "edit", "modify"},
-	Short:   "Update time entry",
-	Run:     timeEntriesUpdateFunc(),
-}
-
-var timeEntriesDeleteCmd = &cobra.Command{
-	Use:     "delete [id...]",
-	Args:    validTimeEntryArgs(),
-	Aliases: []string{"remove", "rm", "del"},
-	Short:   "Delete time entry",
-	Run:     timeEntriesDeleteFunc,
-}
-
 var (
 	limit    int
 	spentOn  string
@@ -69,42 +24,37 @@ var (
 	comments string
 )
 
-func init() {
-	rootCmd.AddCommand(timeEntriesCmd)
+var timeNow = now.EndOfDay()
 
-	timeEntriesCmd.AddCommand(timeEntriesListCmd)
-	timeEntriesCmd.AddCommand(timeEntriesIssueCmd)
-	timeEntriesCmd.AddCommand(timeEntriesProjectCmd)
-	timeEntriesCmd.AddCommand(timeEntriesUpdateCmd)
-	timeEntriesCmd.AddCommand(timeEntriesDeleteCmd)
-
-	timeEntriesListCmd.Flags().IntVarP(&limit, "limit", "l", 10,
-		"Limit number of results")
-
-	for _, cmd := range []*cobra.Command{
-		timeEntriesIssueCmd,
-		timeEntriesProjectCmd,
-		timeEntriesUpdateCmd,
-	} {
-		cmd.Flags().StringVarP(&spentOn, "date", "d", "today",
-			"The date the time was spent ('today', 'yesterday', '2020-01-15')")
-		cmd.Flags().Float32VarP(&hours, "hours", "t", 0,
-			"The number of spent hours")
-		cmd.Flags().StringVarP(&activity, "activity", "a", "",
-			"The name of activity for spent time (this overrides default config value)")
-		cmd.Flags().StringVarP(&comments, "message", "m", "",
-			"Short comment")
+func newTimeEntriesCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "log",
+		Aliases: []string{"l", "entries"},
+		Short:   "Time entries on projects and issues",
 	}
 
-	for _, cmd := range []*cobra.Command{
-		timeEntriesIssueCmd,
-		timeEntriesProjectCmd,
-	} {
-		_ = cmd.MarkFlagRequired("hours")
-	}
+	c.AddCommand(newTimeEntriesListCmd())
+	c.AddCommand(newTimeEntriesIssueCmd())
+	c.AddCommand(newTimeEntriesProjectCmd())
+	c.AddCommand(newTimeEntriesUpdateCmd())
+	c.AddCommand(newTimeEntriesDeleteCmd())
+
+	return c
 }
 
-var timeNow = now.EndOfDay()
+func newTimeEntriesListCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "list",
+		Aliases: []string{"ls", "all"},
+		Short:   "List user time entries",
+		Run:     timeEntriesListFunc,
+	}
+
+	c.Flags().IntVarP(&limit, "limit", "l", 10,
+		"Limit number of results")
+
+	return c
+}
 
 func timeEntriesListFunc(cmd *cobra.Command, _ []string) {
 	limit := cmd.Flags().Lookup("limit").Value.String()
@@ -127,20 +77,48 @@ func timeEntriesListFunc(cmd *cobra.Command, _ []string) {
 	t.Render()
 }
 
-func relativeDateString(dateTime client.DateTime) string {
-	durationDays := int(timeNow.Sub(dateTime.Time).Hours() / 24)
-	date := dateTime.Time.Format(client.DayDateFormat)
-
-	switch {
-	case durationDays < 0:
-		return date
-	case durationDays == 0:
-		return fmt.Sprintf("today (%v)", date)
-	case durationDays == 1:
-		return fmt.Sprintf("yesterday (%v)", date)
-	default:
-		return fmt.Sprintf("%v days ago (%v)", durationDays, date)
+func newTimeEntriesIssueCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "issue [id]",
+		Args:    validIssueArgs(),
+		Aliases: []string{"i"},
+		Short:   "Add time entry to issue.",
+		Run:     timeEntriesAddFunc(false),
 	}
+
+	c.Flags().StringVarP(&spentOn, "date", "d", "today",
+		"The date the time was spent ('today', 'yesterday', '2020-01-15')")
+	c.Flags().Float32VarP(&hours, "hours", "t", 0,
+		"The number of spent hours")
+	c.Flags().StringVarP(&activity, "activity", "a", "",
+		"The name of activity for spent time (this overrides default config value)")
+	c.Flags().StringVarP(&comments, "message", "m", "",
+		"Short comment")
+	_ = c.MarkFlagRequired("hours")
+
+	return c
+}
+
+func newTimeEntriesProjectCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "project [id]",
+		Args:    validProjectArgs(),
+		Aliases: []string{"p"},
+		Short:   "Add time entry to project",
+		Run:     timeEntriesAddFunc(true),
+	}
+
+	c.Flags().StringVarP(&spentOn, "date", "d", "today",
+		"The date the time was spent ('today', 'yesterday', '2020-01-15')")
+	c.Flags().Float32VarP(&hours, "hours", "t", 0,
+		"The number of spent hours")
+	c.Flags().StringVarP(&activity, "activity", "a", "",
+		"The name of activity for spent time (this overrides default config value)")
+	c.Flags().StringVarP(&comments, "message", "m", "",
+		"Short comment")
+	_ = c.MarkFlagRequired("hours")
+
+	return c
 }
 
 func timeEntriesAddFunc(isProject bool) func(cmd *cobra.Command, args []string) {
@@ -204,22 +182,25 @@ func timeEntriesAddFunc(isProject bool) func(cmd *cobra.Command, args []string) 
 	}
 }
 
-func validTimeEntryArgs() cobra.PositionalArgs {
-	return func(cmd *cobra.Command, args []string) error {
-		err := cobra.MinimumNArgs(1)(cmd, args)
-		if err != nil {
-			return err
-		}
-
-		for _, arg := range args {
-			_, err = strconv.ParseInt(arg, 10, 64)
-			if err != nil {
-				return fmt.Errorf("time entry id must be integer, but given %v", arg)
-			}
-		}
-
-		return nil
+func newTimeEntriesUpdateCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "update [id]",
+		Args:    validTimeEntryArgs(),
+		Aliases: []string{"u", "edit", "modify"},
+		Short:   "Update time entry",
+		Run:     timeEntriesUpdateFunc(),
 	}
+
+	c.Flags().StringVarP(&spentOn, "date", "d", "today",
+		"The date the time was spent ('today', 'yesterday', '2020-01-15')")
+	c.Flags().Float32VarP(&hours, "hours", "t", 0,
+		"The number of spent hours")
+	c.Flags().StringVarP(&activity, "activity", "a", "",
+		"The name of activity for spent time (this overrides default config value)")
+	c.Flags().StringVarP(&comments, "message", "m", "",
+		"Short comment")
+
+	return c
 }
 
 func timeEntriesUpdateFunc() func(cmd *cobra.Command, args []string) {
@@ -280,6 +261,52 @@ func timeEntriesUpdateFunc() func(cmd *cobra.Command, args []string) {
 	}
 }
 
+func newTimeEntriesDeleteCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "delete [id...]",
+		Args:    validTimeEntryArgs(),
+		Aliases: []string{"remove", "rm", "del"},
+		Short:   "Delete time entry",
+		Run:     timeEntriesDeleteFunc,
+	}
+
+	return c
+}
+
+func relativeDateString(dateTime client.DateTime) string {
+	durationDays := int(timeNow.Sub(dateTime.Time).Hours() / 24)
+	date := dateTime.Time.Format(client.DayDateFormat)
+
+	switch {
+	case durationDays < 0:
+		return date
+	case durationDays == 0:
+		return fmt.Sprintf("today (%v)", date)
+	case durationDays == 1:
+		return fmt.Sprintf("yesterday (%v)", date)
+	default:
+		return fmt.Sprintf("%v days ago (%v)", durationDays, date)
+	}
+}
+
+func validTimeEntryArgs() cobra.PositionalArgs {
+	return func(cmd *cobra.Command, args []string) error {
+		err := cobra.MinimumNArgs(1)(cmd, args)
+		if err != nil {
+			return err
+		}
+
+		for _, arg := range args {
+			_, err = strconv.ParseInt(arg, 10, 64)
+			if err != nil {
+				return fmt.Errorf("time entry id must be integer, but given %v", arg)
+			}
+		}
+
+		return nil
+	}
+}
+
 func timeEntriesDeleteFunc(_ *cobra.Command, args []string) {
 	for _, arg := range args {
 		entryID, _ := strconv.ParseInt(arg, 10, 64)
@@ -304,7 +331,7 @@ func spentOnModify(spentOn string) (string, error) {
 	default:
 		_, err := time.Parse(client.DateTimeFormat, spentOn)
 		if err != nil {
-			return "", fmt.Errorf("invalid date format (use '%v' instead)\n",
+			return "", fmt.Errorf("invalid date format (use '%v' instead)",
 				client.DateTimeFormat)
 		}
 		modified = spentOn
