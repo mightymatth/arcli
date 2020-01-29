@@ -29,7 +29,7 @@ func statusFunc(_ *cobra.Command, _ []string) {
 	user := "Loading user..."
 	var today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth string
 
-	refresh := make(chan refreshData, 7)
+	refresh := make(chan refreshData)
 
 	var g errgroup.Group
 	g.Go(asyncUserResult(&user, refresh))
