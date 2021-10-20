@@ -19,6 +19,8 @@ const (
 	DefaultsMap = "defaults"
 	// AliasesMap is the key of aliases map in config.
 	AliasesMap = "aliases"
+	// Logged UserID
+	UserID = "userID"
 )
 
 // DefaultsKey represents default key.

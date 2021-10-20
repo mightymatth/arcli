@@ -27,6 +27,7 @@ func newIssuesCmd() *cobra.Command {
 
 	c.AddCommand(newMyIssuesCmd())
 	c.AddCommand(newMyWatchedIssuesCmd())
+	c.AddCommand(newMyOnlyIssuesCmd())
 
 	return c
 }
@@ -72,6 +73,25 @@ func newMyIssuesCmd() *cobra.Command {
 		Short:   "List all issues assigned to the user",
 		Run: func(cmd *cobra.Command, args []string) {
 			issues, err := RClient.GetMyIssues()
+			if err != nil {
+				fmt.Println("Cannot fetch my issues:", err)
+				return
+			}
+
+			drawIssues(issues)
+		},
+	}
+
+	return c
+}
+
+func newMyOnlyIssuesCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "only-my",
+		Aliases: []string{"o"},
+		Short:   "List all issues assigned to the only current user",
+		Run: func(cmd *cobra.Command, args []string) {
+			issues, err := RClient.GetMyIssuesOnly()
 			if err != nil {
 				fmt.Println("Cannot fetch my issues:", err)
 				return
