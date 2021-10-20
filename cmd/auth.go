@@ -96,7 +96,7 @@ func loginFunc(_ *cobra.Command, _ []string) {
 		fmt.Println("Wrong login credentials!")
 		return
 	default:
-		fmt.Println(fmt.Sprintf("Cannot login user (%v)", res.StatusCode))
+		fmt.Printf("Cannot login user (%v)\n", res.StatusCode)
 		return
 	}
 
@@ -142,12 +142,7 @@ func interactiveLoginInputFunc(_ *cobra.Command, _ []string) {
 
 func askForHostname(t *terminal.Terminal) (string, bool) {
 	previousHost := viper.GetString(config.Hostname)
-	var prefix string
-	if previousHost != "" {
-		prefix = fmt.Sprintf("Hostname (%s): ", previousHost)
-	} else {
-		prefix = fmt.Sprintf("Hostname: ")
-	}
+	var prefix string = fmt.Sprintf("Hostname%s: ", ifPreviousHost(previousHost))
 
 	userInput, ok := askForText(t, prefix, false)
 
@@ -187,4 +182,12 @@ func logoutFunc(_ *cobra.Command, _ []string) {
 	}
 
 	fmt.Println("You have successfully logged out!")
+}
+
+func ifPreviousHost(previousHost string) string {
+	const emptyStr string = ""
+	if previousHost != emptyStr {
+		return fmt.Sprintf(" (%s)", previousHost)
+	}
+	return emptyStr
 }
