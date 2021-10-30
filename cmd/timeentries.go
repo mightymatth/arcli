@@ -3,8 +3,10 @@ package cmd
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/jinzhu/now"
 
 	"github.com/mightymatth/arcli/config"
@@ -26,6 +28,11 @@ var (
 
 var timeNow = now.EndOfDay()
 
+const (
+	cellHorizontalSpaces = 2
+	cellWidth            = (cellHorizontalSpaces * 2) + 2
+)
+
 func newTimeEntriesCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:     "log",
@@ -33,6 +40,7 @@ func newTimeEntriesCmd() *cobra.Command {
 		Short:   "Time entries on projects and issues",
 	}
 
+	c.AddCommand(newTimeEntriesCalendarCmd())
 	c.AddCommand(newTimeEntriesListCmd())
 	c.AddCommand(newTimeEntriesIssueCmd())
 	c.AddCommand(newTimeEntriesProjectCmd())
@@ -40,6 +48,60 @@ func newTimeEntriesCmd() *cobra.Command {
 	c.AddCommand(newTimeEntriesDeleteCmd())
 
 	return c
+}
+
+// newTimeEntriesCalendarCmd add the calendar command to the list of available commands.
+func newTimeEntriesCalendarCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "calendar",
+		Aliases: []string{"c", "cal"},
+		Short:   "List user time entries in a calendar format",
+		Run:     timeEntriesCalendarFunc,
+	}
+
+	return c
+}
+
+// timeEntriesCalendarFunc is the function that is called when the command calendar is ran.
+func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) {
+	// Define the days of th week.
+	var daysOfWeek = []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
+
+	// Get the wanted date.
+	var date = now.BeginningOfMonth()
+	var formattedDate = date.Format("January 2006")
+
+	// Calculate the spaces needed to filled the empty space.
+	var dateHeaderSpacesNeeded = ((cellWidth * 7) + 7) - len(formattedDate) - 2
+
+	// Write the date on top of the calendar.
+	timeEntriesCalendarPrintSeparator()
+	fmt.Printf("| %s%s|\n", color.CyanString(formattedDate), strings.Repeat(" ", dateHeaderSpacesNeeded))
+
+	// Show the days of the week.
+	timeEntriesCalendarPrintSeparator()
+
+	for _, day := range daysOfWeek {
+		fmt.Printf("| %s%s", color.CyanString(day), strings.Repeat(" ", cellWidth-4))
+	}
+
+	fmt.Print("|\n")
+	timeEntriesCalendarPrintSeparator()
+}
+
+// timeEntriesCalendarPrintSeparator print a row separator in the calendar.
+func timeEntriesCalendarPrintSeparator() {
+	var tableWidth = (cellWidth * 7) + 8
+
+	for i := 0; i < tableWidth; i++ {
+		if i == 0 || i%(cellWidth+1) == 0 {
+			fmt.Print("+")
+		} else {
+			fmt.Print("-")
+		}
+	}
+
+	fmt.Println()
 }
 
 func newTimeEntriesListCmd() *cobra.Command {
