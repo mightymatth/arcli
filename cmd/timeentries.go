@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	tm "github.com/buger/goterm"
 	"github.com/fatih/color"
 	"github.com/jinzhu/now"
 
@@ -32,10 +34,13 @@ var (
 
 var timeNow = now.EndOfDay()
 
-const (
-	cellHorizontalSpaces = 3
-	cellWidth            = (cellHorizontalSpaces * 2) + 2
-)
+const cellHorizontalSpaces = 3
+
+// CalendarCell represents the calendar's cells.
+type CalendarCell struct {
+	day   int
+	hours float64
+}
 
 func newTimeEntriesCmd() *cobra.Command {
 	c := &cobra.Command{
@@ -78,6 +83,8 @@ func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) error {
 		return errors.New("the format is not correct. The following formats are supported: \"current\", \"2021-11\"")
 	}
 
+	fmt.Print("Loading data...\r")
+
 	// Define the days of th week.
 	var daysOfWeek = []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
 
@@ -103,81 +110,119 @@ func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) error {
 	// Calculate the total weeks in the month.
 	var totalWeeksInMonth int = int(math.Ceil(float64(totalDaysInMonth+weekday) / 7))
 
+	// Get the time entries for the month.
+	var spentOnFrom = date.BeginningOfMonth().Format("2006-01-02")
+	var spentOnTo = date.EndOfMonth().Format("2006-01-02")
+
+	var timeEntries, err = RClient.GetTimeEntries(fmt.Sprintf("from=%s&to=%s&user_id=me&limit=200", spentOnFrom, spentOnTo))
+
+	if err != nil {
+		fmt.Println("Cannot get time entries:", err)
+		os.Exit(1)
+	}
+
+	// Calculate the total of hours logged per day and store it in an slice.
+	var weeks = make([][]CalendarCell, totalWeeksInMonth)
+	var dayIndex = 1
+	var biggestLoggedHours = 0
+
+	for i := 0; i < totalWeeksInMonth; i++ {
+		weeks[i] = make([]CalendarCell, 7)
+
+		for u := 0; u < 7; u++ {
+			if (i == 0 && u < weekday) || dayIndex > totalDaysInMonth {
+				weeks[i][u] = CalendarCell{
+					day: -1,
+				}
+			} else {
+				var hours float64 = 0.0
+
+				// Loop over all time entries and count the number of hours
+				// for the current day.
+				for _, timeEntry := range timeEntries {
+					if timeEntry.SpentOn.Day() == dayIndex {
+						hours += timeEntry.Hours
+					}
+				}
+
+				weeks[i][u] = CalendarCell{
+					day:   dayIndex,
+					hours: hours,
+				}
+
+				// Store the biggest logged hours to be able
+				// to display the calendar's cells width.
+				biggestLoggedHours = int(math.Max(float64(len(formatFloat(hours))), float64(biggestLoggedHours)))
+
+				dayIndex += 1
+			}
+		}
+	}
+
+	var cellWidth = (cellHorizontalSpaces * 2) + biggestLoggedHours
+
 	// Calculate the spaces needed to filled the empty space.
 	var dateHeaderSpacesNeeded = ((cellWidth * 7) + 7) - len(formattedDate) - 2
 
 	// Write the date on top of the calendar.
-	timeEntriesCalendarPrintSeparator("+", "-")
+	timeEntriesCalendarPrintSeparator("+", "-", cellWidth)
 	fmt.Printf("| %s%s|\n", color.CyanString(formattedDate), strings.Repeat(" ", dateHeaderSpacesNeeded))
 
 	// Show the days of the week.
-	timeEntriesCalendarPrintSeparator("+", "-")
+	timeEntriesCalendarPrintSeparator("+", "-", cellWidth)
 
 	for _, day := range daysOfWeek {
 		fmt.Printf("| %s%s", color.CyanString(day), strings.Repeat(" ", cellWidth-4))
 	}
 
 	fmt.Print("|\n")
-	timeEntriesCalendarPrintSeparator("+", "-")
-
-	// Calculate the total of hours logged per day and store it in an slice.
-	var weeks = make([][]int, totalWeeksInMonth)
-	var dayIndex = 1
-
-	for i := 0; i < totalWeeksInMonth; i++ {
-		weeks[i] = make([]int, 7)
-
-		for u := 0; u < 7; u++ {
-			if (i == 0 && u < weekday) || dayIndex > totalDaysInMonth {
-				weeks[i][u] = -1
-			} else {
-				weeks[i][u] = dayIndex
-				dayIndex += 1
-			}
-		}
-	}
+	timeEntriesCalendarPrintSeparator("+", "-", cellWidth)
 
 	// Show the calendar days cells.
 	for _, daysCells := range weeks {
-		for _, day := range daysCells {
-			if day == -1 {
+		for _, dayCell := range daysCells {
+			if dayCell.day == -1 {
 				fmt.Printf("|%s", strings.Repeat(" ", cellWidth))
 			} else {
 				var spaces = 3
 
-				if day < 10 {
+				if dayCell.day < 10 {
 					spaces = 2
 				}
 
-				fmt.Printf("| %s%s", color.CyanString(strconv.Itoa(day)), strings.Repeat(" ", cellWidth-spaces))
+				fmt.Printf("| %s%s", color.CyanString(strconv.Itoa(dayCell.day)), strings.Repeat(" ", cellWidth-spaces))
 			}
 		}
 
 		fmt.Println("|")
-		timeEntriesCalendarPrintSeparator("|", " ")
+		timeEntriesCalendarPrintSeparator("|", " ", cellWidth)
 
-		// Put total of hours here.
-		for _, day := range daysCells {
-			var timeLogged = "8 "
+		// Display hours.
+		for _, dayCell := range daysCells {
+			var timeLogged = formatFloat(dayCell.hours)
 
-			if day == -1 {
-				timeLogged = "  "
+			if dayCell.day == -1 || dayCell.hours == 0 {
+				timeLogged = strings.Repeat(" ", biggestLoggedHours)
 			}
 
-			fmt.Printf("|%s%s%s", strings.Repeat(" ", cellHorizontalSpaces), timeLogged, strings.Repeat(" ", cellHorizontalSpaces))
+			var (
+				spacesLeft  = strings.Repeat(" ", cellHorizontalSpaces)
+				spacesRight = strings.Repeat(" ", cellHorizontalSpaces+(biggestLoggedHours-len(timeLogged)))
+			)
+
+			fmt.Printf("|%s%s%s", spacesLeft, tm.Color(tm.Bold(timeLogged), tm.GREEN), spacesRight)
 		}
 
 		fmt.Println("|")
 
-		timeEntriesCalendarPrintSeparator("|", " ")
-		timeEntriesCalendarPrintSeparator("+", "-")
+		timeEntriesCalendarPrintSeparator("+", "-", cellWidth)
 	}
 
 	return nil
 }
 
 // timeEntriesCalendarPrintSeparator print a row separator in the calendar.
-func timeEntriesCalendarPrintSeparator(border, separator string) {
+func timeEntriesCalendarPrintSeparator(border, separator string, cellWidth int) {
 	var tableWidth = (cellWidth * 7) + 8
 
 	for i := 0; i < tableWidth; i++ {
