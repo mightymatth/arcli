@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"math"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -20,17 +22,18 @@ import (
 )
 
 var (
-	limit    int
-	spentOn  string
-	hours    float32
-	activity string
-	comments string
+	limit        int
+	spentOn      string
+	spentOnMonth string
+	hours        float32
+	activity     string
+	comments     string
 )
 
 var timeNow = now.EndOfDay()
 
 const (
-	cellHorizontalSpaces = 2
+	cellHorizontalSpaces = 3
 	cellWidth            = (cellHorizontalSpaces * 2) + 2
 )
 
@@ -57,26 +60,45 @@ func newTimeEntriesCalendarCmd() *cobra.Command {
 		Use:     "calendar",
 		Aliases: []string{"c", "cal"},
 		Short:   "List user time entries in a calendar format",
-		Run:     timeEntriesCalendarFunc,
+		RunE:    timeEntriesCalendarFunc,
 	}
+
+	c.Flags().StringVarP(&spentOnMonth, "month", "m", "current",
+		"The month the times was spent ('current', '2020-01')")
 
 	return c
 }
 
 // timeEntriesCalendarFunc is the function that is called when the command calendar is ran.
-func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) {
+func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) error {
+	// Check if the month format is correct.
+	var re = regexp.MustCompile(`current|[\d]{4}-[\d]{2}`)
+
+	if !re.MatchString(spentOnMonth) {
+		return errors.New("the format is not correct. The following formats are supported: \"current\", \"2021-11\"")
+	}
+
 	// Define the days of th week.
 	var daysOfWeek = []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
 
+	// Get the date depending on the user's choice.
+	var date *now.Now
+
+	if spentOnMonth == "current" {
+		date = now.With(time.Now())
+	} else {
+		var dateParsed, _ = time.Parse("2006-01-02", fmt.Sprintf("%s-01", spentOnMonth))
+		date = now.With(dateParsed)
+	}
+
 	// Get the wanted date.
-	var date = now.BeginningOfMonth()
 	var formattedDate = date.Format("January 2006")
 
 	// Get the totals days in the month.
-	var _, _, totalDaysInMonth = now.EndOfMonth().Date()
+	var _, _, totalDaysInMonth = date.EndOfMonth().Date()
 
 	// Get the weekday of the first day of the month.
-	var weekday = int(date.Weekday())
+	var weekday = int(date.BeginningOfMonth().Weekday())
 
 	// Calculate the total weeks in the month.
 	var totalWeeksInMonth int = int(math.Ceil(float64(totalDaysInMonth+weekday) / 7))
@@ -150,6 +172,8 @@ func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) {
 		timeEntriesCalendarPrintSeparator("|", " ")
 		timeEntriesCalendarPrintSeparator("+", "-")
 	}
+
+	return nil
 }
 
 // timeEntriesCalendarPrintSeparator print a row separator in the calendar.
