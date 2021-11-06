@@ -152,7 +152,7 @@ func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) error {
 
 				// Store the biggest logged hours to be able
 				// to display the calendar's cells width.
-				biggestLoggedHours = int(math.Max(float64(len(formatFloat(hours))), float64(biggestLoggedHours)))
+				biggestLoggedHours = int(math.Max(float64(len(formatFloatTwoFloating(hours))), float64(biggestLoggedHours)))
 
 				dayIndex += 1
 			}
@@ -199,18 +199,24 @@ func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) error {
 
 		// Display hours.
 		for _, dayCell := range daysCells {
-			var timeLogged = formatFloat(dayCell.hours)
+			var timeLogged = formatFloatTwoFloating(dayCell.hours)
 
 			if dayCell.day == -1 || dayCell.hours == 0 {
 				timeLogged = strings.Repeat(" ", biggestLoggedHours)
 			}
 
 			var (
-				spacesLeft  = strings.Repeat(" ", cellHorizontalSpaces)
-				spacesRight = strings.Repeat(" ", cellHorizontalSpaces+(biggestLoggedHours-len(timeLogged)))
+				spacesLeft  = cellHorizontalSpaces
+				spacesRight = cellHorizontalSpaces + (biggestLoggedHours - len(timeLogged))
 			)
 
-			fmt.Printf("|%s%s%s", spacesLeft, tm.Color(tm.Bold(timeLogged), tm.GREEN), spacesRight)
+			if len(timeLogged) != biggestLoggedHours && (spacesLeft+spacesRight)%2 == 0 {
+				var spacesDifference = (spacesRight - spacesLeft) / 2
+				spacesLeft += spacesDifference
+				spacesRight -= spacesDifference
+			}
+
+			fmt.Printf("|%s%s%s", strings.Repeat(" ", spacesLeft), tm.Color(tm.Bold(timeLogged), tm.GREEN), strings.Repeat(" ", spacesRight))
 		}
 
 		fmt.Println("|")
@@ -219,6 +225,11 @@ func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) error {
 	}
 
 	return nil
+}
+
+func formatFloatTwoFloating(num float64) string {
+	s := fmt.Sprintf("%.2f", num)
+	return strings.TrimRight(strings.TrimRight(s, "0"), ".")
 }
 
 // timeEntriesCalendarPrintSeparator print a row separator in the calendar.
