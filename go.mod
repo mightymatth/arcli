@@ -5,7 +5,6 @@ go 1.13
 require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/buger/goterm v1.0.3
-	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-openapi/errors v0.20.1 // indirect
 	github.com/go-openapi/strfmt v0.20.3 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect

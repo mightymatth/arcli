@@ -11,7 +11,6 @@ import (
 	"time"
 
 	tm "github.com/buger/goterm"
-	"github.com/fatih/color"
 	"github.com/jinzhu/now"
 
 	"github.com/mightymatth/arcli/config"
@@ -166,13 +165,13 @@ func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) error {
 
 	// Write the date on top of the calendar.
 	timeEntriesCalendarPrintSeparator("+", "-", cellWidth)
-	fmt.Printf("| %s%s|\n", color.CyanString(formattedDate), strings.Repeat(" ", dateHeaderSpacesNeeded))
+	fmt.Printf("| %s%s|\n", tm.Color(formattedDate, tm.CYAN), strings.Repeat(" ", dateHeaderSpacesNeeded))
 
 	// Show the days of the week.
 	timeEntriesCalendarPrintSeparator("+", "-", cellWidth)
 
 	for _, day := range daysOfWeek {
-		fmt.Printf("| %s%s", color.CyanString(day), strings.Repeat(" ", cellWidth-4))
+		fmt.Printf("| %s%s", tm.Color(day, tm.CYAN), strings.Repeat(" ", cellWidth-4))
 	}
 
 	fmt.Print("|\n")
@@ -190,7 +189,7 @@ func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) error {
 					spaces = 2
 				}
 
-				fmt.Printf("| %s%s", color.CyanString(strconv.Itoa(dayCell.day)), strings.Repeat(" ", cellWidth-spaces))
+				fmt.Printf("| %s%s", tm.Color(strconv.Itoa(dayCell.day), tm.CYAN), strings.Repeat(" ", cellWidth-spaces))
 			}
 		}
 
