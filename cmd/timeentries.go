@@ -37,8 +37,8 @@ const cellHorizontalSpaces = 3
 
 // CalendarCell represents the calendar's cells.
 type CalendarCell struct {
-	day   int
-	hours float64
+	Day   int
+	Hours float64
 }
 
 func newTimeEntriesCmd() *cobra.Command {
@@ -131,7 +131,7 @@ func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) error {
 		for u := 0; u < 7; u++ {
 			if (i == 0 && u < weekday) || dayIndex > totalDaysInMonth {
 				weeks[i][u] = CalendarCell{
-					day: -1,
+					Day: -1,
 				}
 			} else {
 				var hours float64 = 0.0
@@ -145,8 +145,8 @@ func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) error {
 				}
 
 				weeks[i][u] = CalendarCell{
-					day:   dayIndex,
-					hours: hours,
+					Day:   dayIndex,
+					Hours: hours,
 				}
 
 				// Store the biggest logged hours to be able
@@ -180,16 +180,16 @@ func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) error {
 	// Show the calendar days cells.
 	for _, daysCells := range weeks {
 		for _, dayCell := range daysCells {
-			if dayCell.day == -1 {
+			if dayCell.Day == -1 {
 				fmt.Printf("|%s", strings.Repeat(" ", cellWidth))
 			} else {
 				var spaces = 3
 
-				if dayCell.day < 10 {
+				if dayCell.Day < 10 {
 					spaces = 2
 				}
 
-				fmt.Printf("| %s%s", tm.Color(strconv.Itoa(dayCell.day), tm.CYAN), strings.Repeat(" ", cellWidth-spaces))
+				fmt.Printf("| %s%s", tm.Color(strconv.Itoa(dayCell.Day), tm.CYAN), strings.Repeat(" ", cellWidth-spaces))
 			}
 		}
 
@@ -198,9 +198,9 @@ func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) error {
 
 		// Display hours.
 		for _, dayCell := range daysCells {
-			var timeLogged = formatFloatTwoFloating(dayCell.hours)
+			var timeLogged = formatFloatTwoFloating(dayCell.Hours)
 
-			if dayCell.day == -1 || dayCell.hours == 0 {
+			if dayCell.Day == -1 || dayCell.Hours == 0 {
 				timeLogged = strings.Repeat(" ", biggestLoggedHours)
 			}
 
