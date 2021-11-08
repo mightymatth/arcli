@@ -6,6 +6,7 @@ import (
 	"math"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -250,14 +251,23 @@ func timeEntriesPrintSummary(timeEntries []client.TimeEntry) {
 		projectsInfo[timeEntry.Project.Name] += timeEntry.Hours
 	}
 
+	// Sort the keys to be able to print the projects alphabetically.
+	projectsInfoKeys := make([]string, 0, len(projectsInfo))
+
+	for key := range projectsInfo {
+		projectsInfoKeys = append(projectsInfoKeys, key)
+	}
+
+	sort.Strings(projectsInfoKeys)
+
 	// Print the summary table.
 	t := utils.NewTable()
 	t.SetTitle("Summary")
 	t.SetStyle(table.StyleDefault)
 	t.AppendHeader(table.Row{"Project Name", "Total Hours"})
 
-	for projectName, totalHours := range projectsInfo {
-		t.AppendRow(table.Row{projectName, totalHours})
+	for _, projectName := range projectsInfoKeys {
+		t.AppendRow(table.Row{projectName, projectsInfo[projectName]})
 	}
 
 	t.Render()
