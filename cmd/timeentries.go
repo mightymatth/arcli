@@ -223,7 +223,44 @@ func timeEntriesCalendarFunc(cmd *cobra.Command, _ []string) error {
 		timeEntriesCalendarPrintSeparator("+", "-", cellWidth)
 	}
 
+	// Print a summary table of the time entries grouped by projects.
+	if len(timeEntries) > 0 {
+		timeEntriesPrintSummary(timeEntries)
+	}
+
 	return nil
+}
+
+// timeEntriesPrintSummary print a summary table of the time entries by projects.
+func timeEntriesPrintSummary(timeEntries []client.TimeEntry) {
+	fmt.Println()
+
+	// Reverse the time entries slice.
+	reversedtimeEntries := []client.TimeEntry{}
+
+	for i := range timeEntries {
+		timeEntry := timeEntries[len(timeEntries)-1-i]
+		reversedtimeEntries = append(reversedtimeEntries, timeEntry)
+	}
+
+	// Store information by projects.
+	var projectsInfo = make(map[string]float64)
+
+	for _, timeEntry := range reversedtimeEntries {
+		projectsInfo[timeEntry.Project.Name] += timeEntry.Hours
+	}
+
+	// Print the summary table.
+	t := utils.NewTable()
+	t.SetTitle("Summary")
+	t.SetStyle(table.StyleDefault)
+	t.AppendHeader(table.Row{"Project Name", "Total Hours"})
+
+	for projectName, totalHours := range projectsInfo {
+		t.AppendRow(table.Row{projectName, totalHours})
+	}
+
+	t.Render()
 }
 
 func formatFloatTwoFloating(num float64) string {
