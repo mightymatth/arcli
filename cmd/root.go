@@ -74,5 +74,6 @@ func init() {
 		newLogoutCmd(),
 		newAliasesCmd(),
 		newDefaultsCmd(),
+		newViewCmd(),
 	)
 }
