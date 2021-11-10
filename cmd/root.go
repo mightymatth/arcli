@@ -75,9 +75,4 @@ func init() {
 		newAliasesCmd(),
 		newDefaultsCmd(),
 	)
-
-	// Generate the completion files.
-	rootCmd.GenBashCompletionFileV2("contrib/completions/arcli.bash", true)
-	rootCmd.GenZshCompletionFile("contrib/completions/_arcli")
-	rootCmd.GenFishCompletionFile("contrib/completions/arcli.fish", true)
 }

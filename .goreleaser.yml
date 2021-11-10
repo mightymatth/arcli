@@ -33,9 +33,15 @@ brews:
     description: "Awesome Redmine CLI"
     install: |
       bin.install "arcli"
-      bash_completion.install "contrib/completions/arcli.bash"
-      zsh_completion.install "contrib/completions/_arcli"
-      fish_completion.install "contrib/completions/arcli.fish"
+
+      bash_output = Utils.safe_popen_read("#{bin}/arcli", "completions", "bash")
+      (bash_completion/"arcli").write bash_output
+
+      zsh_output = Utils.safe_popen_read("#{bin}/arcli", "completions", "zsh")
+      (zsh_completion/"_arcli").write zsh_output
+
+      fish_output = Utils.safe_popen_read("#{bin}/arcli", "completions", "fish")
+      (fish_completion/"arcli.fish").write fish_output
     test: |
       system "#{bin}/arcli --version"
 
