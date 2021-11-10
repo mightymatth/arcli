@@ -75,6 +75,7 @@ Available Commands:
   projects    Shows project details
   search      Search Redmine
   status      Overall account info
+  view        Shows data in different views
 
 Flags:
   -h, --help      help for arcli
