@@ -33,7 +33,6 @@ func newTimeEntriesCmd() *cobra.Command {
 		Short:   "Time entries on projects and issues",
 	}
 
-	c.AddCommand(newTimeEntriesCalendarCmd())
 	c.AddCommand(newTimeEntriesListCmd())
 	c.AddCommand(newTimeEntriesIssueCmd())
 	c.AddCommand(newTimeEntriesProjectCmd())
