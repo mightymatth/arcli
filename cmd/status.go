@@ -2,10 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"golang.org/x/sync/errgroup"
 	"strings"
 	"sync"
-
-	"golang.org/x/sync/errgroup"
 
 	"github.com/spf13/cobra"
 
@@ -62,6 +61,7 @@ func statusFunc(_ *cobra.Command, _ []string) {
 			refreshData.update()
 			drawScreen()
 		}
+
 		writing.Done()
 	}()
 

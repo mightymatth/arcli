@@ -21,13 +21,15 @@ type Client struct {
 }
 
 func (c *Client) getRequest(path string, queryParams string) (*http.Request, error) {
-	hostname, apiKey := getCredentials()
-	u := url.URL{
-		Scheme:   "https",
-		Host:     hostname,
-		Path:     path,
-		RawQuery: queryParams,
+	host, apiKey := getCredentials()
+
+	u, err := url.Parse(host)
+	if err != nil {
+		return nil, err
 	}
+
+	u.Path = path
+	u.RawQuery = queryParams
 
 	var buf io.ReadWriter
 	req, err := http.NewRequest("GET", u.String(), buf)
@@ -43,12 +45,14 @@ func (c *Client) getRequest(path string, queryParams string) (*http.Request, err
 }
 
 func (c *Client) postRequest(path string, body interface{}) (*http.Request, error) {
-	hostname, apiKey := getCredentials()
-	u := url.URL{
-		Scheme: "https",
-		Host:   hostname,
-		Path:   path,
+	host, apiKey := getCredentials()
+
+	u, err := url.Parse(host)
+	if err != nil {
+		return nil, err
 	}
+
+	u.Path = path
 
 	var buf io.ReadWriter
 	if body != nil {
@@ -74,12 +78,14 @@ func (c *Client) postRequest(path string, body interface{}) (*http.Request, erro
 }
 
 func (c *Client) putRequest(path string, body interface{}) (*http.Request, error) {
-	hostname, apiKey := getCredentials()
-	u := url.URL{
-		Scheme: "https",
-		Host:   hostname,
-		Path:   path,
+	host, apiKey := getCredentials()
+
+	u, err := url.Parse(host)
+	if err != nil {
+		return nil, err
 	}
+
+	u.Path = path
 
 	var buf io.ReadWriter
 	if body != nil {
@@ -105,12 +111,14 @@ func (c *Client) putRequest(path string, body interface{}) (*http.Request, error
 }
 
 func (c *Client) deleteRequest(path string) (*http.Request, error) {
-	hostname, apiKey := getCredentials()
-	u := url.URL{
-		Scheme: "https",
-		Host:   hostname,
-		Path:   path,
+	host, apiKey := getCredentials()
+
+	u, err := url.Parse(host)
+	if err != nil {
+		return nil, err
 	}
+
+	u.Path = path
 
 	var buf io.ReadWriter
 	req, err := http.NewRequest("DELETE", u.String(), buf)
@@ -141,11 +149,11 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	return resp, nil
 }
 
-func getCredentials() (hostname, apiKey string) {
-	hostname = viper.GetString(config.Hostname)
+func getCredentials() (host, apiKey string) {
+	host = viper.GetString(config.Host)
 	apiKey = viper.GetString(config.APIKey)
 
-	if hostname == "" || apiKey == "" {
+	if host == "" || apiKey == "" {
 		fmt.Println("You are not logged in.")
 		os.Exit(1)
 	}
