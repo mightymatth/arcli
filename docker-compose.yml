@@ -10,7 +10,7 @@ services:
       - MARIADB_USER=bn_redmine
       - MARIADB_DATABASE=bitnami_redmine
   redmine:
-    image: docker.io/bitnami/redmine:4
+    image: docker.io/bitnami/redmine:4.2.3
     ports:
       - '3000:3000'
     volumes:
