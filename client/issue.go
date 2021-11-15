@@ -41,15 +41,15 @@ func (c *Client) GetIssue(id int64) (*Issue, error) {
 	return &response.Issue, nil
 }
 
-// GetMyIssues fetches issues assigned to currently logged user.
+// GetMyIssues fetches issues assigned only to currently logged user.
 func (c *Client) GetMyIssues() ([]Issue, error) {
-	return c.GetIssues("assigned_to_id=me")
+	params := fmt.Sprintf("assigned_to_id=%v", viper.GetString(config.UserID))
+	return c.GetIssues(params)
 }
 
-// GetMyIssues fetches issues assigned only to currently logged user.
-func (c *Client) GetMyIssuesOnly() ([]Issue, error) {
-	param := fmt.Sprintf("assigned_to_id=%v", viper.GetString(config.UserID))
-	return c.GetIssues(param)
+// GetMyRelatedIssues fetches issues assigned to currently logged user.
+func (c *Client) GetMyRelatedIssues() ([]Issue, error) {
+	return c.GetIssues("assigned_to_id=me")
 }
 
 // GetMyWatchedIssues fetches issues that currently logged user watches.
