@@ -93,11 +93,22 @@ Use "arcli [command] --help" for more information about a command.
 ## Development
 
 ```
-# start local Redmine server with database
+# start local Redmine server
 docker compose up -d
 
 # use `go run main.go <command>` instead of `arcli <command>`
 
+# login with admin user (username: admin, password: admin)
+go run main.go login inline -s http://localhost:3000 -u admin -p admin
+
 # shut down Redmine server
 docker compose down
 ```
+
+## FAQ
+
+> My username and password is correct, but I get 404
+
+On freshly installed Redmine server, REST API web service is turned off by
+default. To turn it on, go to browser, open Redmine server URL, log in with
+administrator, go to **Administrator tab > Settings > API tab** and turn on **Enable REST web service** option.
