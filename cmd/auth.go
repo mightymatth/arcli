@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	hostname, username, password string
+	host, username, password string
 )
 
 func newLoginCmd() *cobra.Command {
@@ -49,7 +49,7 @@ func newLoginInlineCmd() *cobra.Command {
 		Run:     loginFunc,
 	}
 
-	c.Flags().StringVarP(&hostname, "server", "s", "", "Hostname of Redmine server (e.g. host.redmine.org)")
+	c.Flags().StringVarP(&host, "server", "s", "", "Host of Redmine server (e.g. https://host.redmine.org)")
 	c.Flags().StringVarP(&username, "username", "u", "", "Username")
 	c.Flags().StringVarP(&password, "password", "p", "", "Password")
 
@@ -68,14 +68,13 @@ func newLogoutCmd() *cobra.Command {
 		Long:    "Logout current user from Redmine. It deletes user credentials.",
 		Run:     logoutFunc,
 	}
-
 }
 
 func loginFunc(_ *cobra.Command, _ []string) {
 	authCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	viper.Set(config.Hostname, hostname)
+	viper.Set(config.Host, host)
 	req, ReqErr := RClient.NewAuthRequest(authCtx, username, password)
 	if ReqErr != nil {
 		log.Println("User request:", ReqErr)
@@ -113,7 +112,6 @@ func loginFunc(_ *cobra.Command, _ []string) {
 }
 
 func interactiveLoginInputFunc(_ *cobra.Command, _ []string) {
-	var err error
 	if !terminal.IsTerminal(0) || !terminal.IsTerminal(1) {
 		fmt.Printf("stdin/stdout should be terminal")
 		return
@@ -131,7 +129,7 @@ func interactiveLoginInputFunc(_ *cobra.Command, _ []string) {
 	t := terminal.NewTerminal(screen, "")
 
 	var hostOk, userOk, passOk bool
-	hostname, hostOk = askForHostname(t)
+	host, hostOk = askForHost(t)
 	username, userOk = askForText(t, "Username: ", false)
 	password, passOk = askForText(t, "Password: ", true)
 
@@ -141,13 +139,13 @@ func interactiveLoginInputFunc(_ *cobra.Command, _ []string) {
 	}
 }
 
-func askForHostname(t *terminal.Terminal) (string, bool) {
-	previousHost := viper.GetString(config.Hostname)
+func askForHost(t *terminal.Terminal) (string, bool) {
+	previousHost := viper.GetString(config.Host)
 	var prefix string
 	if previousHost != "" {
-		prefix = fmt.Sprintf("Hostname (%s): ", previousHost)
+		prefix = fmt.Sprintf("Host (%s): ", previousHost)
 	} else {
-		prefix = fmt.Sprintf("Hostname: ")
+		prefix = fmt.Sprintf("Host: ")
 	}
 
 	userInput, ok := askForText(t, prefix, false)

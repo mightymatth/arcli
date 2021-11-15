@@ -28,17 +28,19 @@ type UserAPIResponse struct {
 // NewAuthRequest fetches user credentials for given username and password. Method uses
 // simple basic authentication.
 func (c *Client) NewAuthRequest(ctx context.Context, username, password string) (*http.Request, error) {
-	u := url.URL{
-		Scheme: "https",
-		Host:   viper.GetString(config.Hostname),
-		Path:   "/users/current.json",
-		User:   url.UserPassword(username, password),
+	u, err := url.Parse(viper.GetString(config.Host))
+	if err != nil {
+		return nil, err
 	}
+
+	u.Path = "/users/current.json"
+	u.User = url.UserPassword(username, password)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
 		return nil, err
 	}
+
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", c.UserAgent)
 

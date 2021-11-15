@@ -6,15 +6,14 @@ import (
 	"os"
 	"path"
 
-	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
 const (
 	// APIKey is the key of API key in config.
 	APIKey = "apikey"
-	// Hostname is the key of hostname in config.
-	Hostname = "hostname"
+	// Host is the key of host in config.
+	Host = "host"
 	// DefaultsMap is the key of defaults map in config.
 	DefaultsMap = "defaults"
 	// AliasesMap is the key of aliases map in config.
@@ -36,7 +35,7 @@ var AvailableDefaultsKeys = []string{string(Activity)}
 
 // Setup setups permanent configuration in local storage.
 func Setup() {
-	home, err := homedir.Dir()
+	home, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

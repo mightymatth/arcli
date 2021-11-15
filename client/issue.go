@@ -75,12 +75,14 @@ func (c *Client) GetIssues(queryParams string) ([]Issue, error) {
 
 // URL returns issue URL.
 func (i *Issue) URL() string {
-	hostname, _ := getCredentials()
-	u := url.URL{
-		Scheme: "https",
-		Host:   hostname,
-		Path:   fmt.Sprintf("/issues/%v", i.ID),
+	host, _ := getCredentials()
+
+	u, err := url.Parse(host)
+	if err != nil {
+		return ""
 	}
+
+	u.Path = fmt.Sprintf("/issues/%v", i.ID)
 
 	return u.String()
 }
