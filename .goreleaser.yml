@@ -1,4 +1,10 @@
 # Make sure to check the documentation at http://goreleaser.com
+
+before:
+  hooks:
+    - go mod tidy
+    - ./scripts/completions.sh
+
 builds:
   - env:
       - CGO_ENABLED=0
@@ -31,6 +37,11 @@ brews:
       name: arcli
     homepage: https://github.com/mightymatth/arcli
     description: "Awesome Redmine CLI"
+    install: |-
+      bin.install "arcli"
+      bash_completion.install "completions/arcli.bash" => "arcli"
+      zsh_completion.install "completions/arcli.zsh" => "_arcli
+      fish_completion.install "completions/arcli.fish"
     test: |
       system "#{bin}/arcli --version"
 
