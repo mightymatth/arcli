@@ -26,6 +26,7 @@ func newIssuesCmd() *cobra.Command {
 	}
 
 	c.AddCommand(newMyIssuesCmd())
+	c.AddCommand(newMyRelatedIssuesCmd())
 	c.AddCommand(newMyWatchedIssuesCmd())
 
 	return c
@@ -68,7 +69,7 @@ func issueFunc(_ *cobra.Command, args []string) {
 func newMyIssuesCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:     "my",
-		Aliases: []string{"assigned", "all", "list", "ls"},
+		Aliases: []string{"assigned", "list", "ls"},
 		Short:   "List all issues assigned to the user",
 		Run: func(cmd *cobra.Command, args []string) {
 			issues, err := RClient.GetMyIssues()
@@ -84,11 +85,30 @@ func newMyIssuesCmd() *cobra.Command {
 	return c
 }
 
+func newMyRelatedIssuesCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use:     "related",
+		Aliases: []string{"rel"},
+		Short:   "List all related issues assigned to the user (including groups)",
+		Run: func(cmd *cobra.Command, args []string) {
+			issues, err := RClient.GetMyRelatedIssues()
+			if err != nil {
+				fmt.Println("Cannot fetch my related issues:", err)
+				return
+			}
+
+			drawIssues(issues)
+		},
+	}
+
+	return c
+}
+
 func newMyWatchedIssuesCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:     "watched",
 		Aliases: []string{"w"},
-		Short:   "List all issues watched by user",
+		Short:   "List all issues watched by the user",
 		Run: func(cmd *cobra.Command, args []string) {
 			issues, err := RClient.GetMyWatchedIssues()
 			if err != nil {

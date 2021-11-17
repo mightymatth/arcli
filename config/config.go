@@ -14,10 +14,12 @@ const (
 	APIKey = "apikey"
 	// Host is the key of host in config.
 	Host = "host"
-	// DefaultsMap is the key of defaults map in config.
+	// DefaultsMap is the key of the defaults map in config.
 	DefaultsMap = "defaults"
-	// AliasesMap is the key of aliases map in config.
+	// AliasesMap is the key of the aliases map in config.
 	AliasesMap = "aliases"
+	// UserID is the user ID
+	UserID = "userID"
 )
 
 // DefaultsKey represents default key.
@@ -99,7 +101,7 @@ func SetAlias(key string, value string) error {
 		}
 	}()
 
-	if value == "" { // Remove alias if value is empty
+	if value == "" {
 		delete(aliases, key)
 		return nil
 	}

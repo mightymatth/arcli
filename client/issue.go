@@ -3,6 +3,10 @@ package client
 import (
 	"fmt"
 	"net/url"
+
+	"github.com/mightymatth/arcli/config"
+
+	"github.com/spf13/viper"
 )
 
 // Issue correspond with issue in Redmine.
@@ -37,8 +41,14 @@ func (c *Client) GetIssue(id int64) (*Issue, error) {
 	return &response.Issue, nil
 }
 
-// GetMyIssues fetches issues assigned to currently logged user.
+// GetMyIssues fetches issues assigned only to currently logged user.
 func (c *Client) GetMyIssues() ([]Issue, error) {
+	params := fmt.Sprintf("assigned_to_id=%v", viper.GetString(config.UserID))
+	return c.GetIssues(params)
+}
+
+// GetMyRelatedIssues fetches issues assigned to currently logged user.
+func (c *Client) GetMyRelatedIssues() ([]Issue, error) {
 	return c.GetIssues("assigned_to_id=me")
 }
 

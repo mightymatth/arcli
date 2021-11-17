@@ -101,6 +101,7 @@ func loginFunc(_ *cobra.Command, _ []string) {
 
 	user := userAPIResponse.User
 	viper.Set(config.APIKey, user.APIKey)
+	viper.Set(config.UserID, user.ID)
 	writeConfigErr := viper.WriteConfig()
 
 	if writeConfigErr != nil {
@@ -178,6 +179,7 @@ func askForText(t *terminal.Terminal, prefix string, hidden bool) (string, bool)
 
 func logoutFunc(_ *cobra.Command, _ []string) {
 	viper.Set(config.APIKey, "")
+	viper.Set(config.UserID, "")
 	err := viper.WriteConfig()
 
 	if err != nil {
