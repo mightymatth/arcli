@@ -35,6 +35,7 @@ func (c *Client) NewAuthRequest(ctx context.Context, username, password string) 
 
 	u.Path = "/users/current.json"
 	u.User = url.UserPassword(username, password)
+	c.setTransport()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	if err != nil {
@@ -45,6 +46,12 @@ func (c *Client) NewAuthRequest(ctx context.Context, username, password string) 
 	req.Header.Set("User-Agent", c.UserAgent)
 
 	return req, nil
+}
+
+func (c *Client) setTransport() {
+	if transport := getTransport(); transport != nil {
+		c.HTTPClient.Transport = transport
+	}
 }
 
 // GetUser fetches data of currently logged user.

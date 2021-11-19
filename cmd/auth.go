@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/mightymatth/arcli/config"
@@ -22,7 +23,7 @@ import (
 )
 
 var (
-	host, username, password string
+	host, username, password, caCert string
 )
 
 func newLoginCmd() *cobra.Command {
@@ -34,6 +35,8 @@ func newLoginCmd() *cobra.Command {
 		PreRun:  interactiveLoginInputFunc,
 		Run:     loginFunc,
 	}
+
+	c.Flags().StringVarP(&caCert, "cacert", "c", "", "CA Certificate")
 
 	c.AddCommand(newLoginInlineCmd())
 
@@ -52,6 +55,7 @@ func newLoginInlineCmd() *cobra.Command {
 	c.Flags().StringVarP(&host, "server", "s", "", "Host of Redmine server (e.g. https://host.redmine.org)")
 	c.Flags().StringVarP(&username, "username", "u", "", "Username")
 	c.Flags().StringVarP(&password, "password", "p", "", "Password")
+	c.Flags().StringVarP(&caCert, "cacert", "c", "", "CA Certificate")
 
 	_ = c.MarkFlagRequired("server")
 	_ = c.MarkFlagRequired("username")
@@ -71,10 +75,22 @@ func newLogoutCmd() *cobra.Command {
 }
 
 func loginFunc(_ *cobra.Command, _ []string) {
-	authCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	authCtx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 	defer cancel()
 
 	viper.Set(config.Host, host)
+
+	if caCert != "" {
+		caCertAbsPath, err := filepath.Abs(caCert)
+		if err != nil {
+			log.Fatalf("cannot fetch certificate absolute path: %v", err)
+		}
+
+		viper.Set(config.CaCert, caCertAbsPath)
+	} else {
+		viper.Set(config.CaCert, "")
+	}
+
 	req, ReqErr := RClient.NewAuthRequest(authCtx, username, password)
 	if ReqErr != nil {
 		log.Println("User request:", ReqErr)
@@ -180,6 +196,7 @@ func askForText(t *terminal.Terminal, prefix string, hidden bool) (string, bool)
 func logoutFunc(_ *cobra.Command, _ []string) {
 	viper.Set(config.APIKey, "")
 	viper.Set(config.UserID, "")
+	viper.Set(config.CaCert, "")
 	err := viper.WriteConfig()
 
 	if err != nil {
