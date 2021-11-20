@@ -2,14 +2,17 @@ package client
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"github.com/mightymatth/arcli/config"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
-
-	"github.com/mightymatth/arcli/config"
 
 	"github.com/spf13/viper"
 )
@@ -22,6 +25,7 @@ type Client struct {
 
 func (c *Client) getRequest(path string, queryParams string) (*http.Request, error) {
 	host, apiKey := getCredentials()
+	c.setTransport()
 
 	u, err := url.Parse(host)
 	if err != nil {
@@ -46,6 +50,7 @@ func (c *Client) getRequest(path string, queryParams string) (*http.Request, err
 
 func (c *Client) postRequest(path string, body interface{}) (*http.Request, error) {
 	host, apiKey := getCredentials()
+	c.setTransport()
 
 	u, err := url.Parse(host)
 	if err != nil {
@@ -79,6 +84,7 @@ func (c *Client) postRequest(path string, body interface{}) (*http.Request, erro
 
 func (c *Client) putRequest(path string, body interface{}) (*http.Request, error) {
 	host, apiKey := getCredentials()
+	c.setTransport()
 
 	u, err := url.Parse(host)
 	if err != nil {
@@ -112,6 +118,7 @@ func (c *Client) putRequest(path string, body interface{}) (*http.Request, error
 
 func (c *Client) deleteRequest(path string) (*http.Request, error) {
 	host, apiKey := getCredentials()
+	c.setTransport()
 
 	u, err := url.Parse(host)
 	if err != nil {
@@ -159,6 +166,28 @@ func getCredentials() (host, apiKey string) {
 	}
 
 	return
+}
+
+func getTransport() *http.Transport {
+	caCert := viper.GetString(config.CaCert)
+
+	if caCert == "" {
+		return nil
+	}
+
+	certPool, err := x509.SystemCertPool()
+	if err != nil {
+		log.Fatal("unable to get system cert pool: ", err)
+	}
+
+	cert, err := ioutil.ReadFile(caCert)
+	if err != nil {
+		log.Fatal("cannot fetch ssl certificate: ", err)
+	}
+
+	certPool.AppendCertsFromPEM(cert)
+
+	return &http.Transport{TLSClientConfig: &tls.Config{RootCAs: certPool}}
 }
 
 type entity struct {

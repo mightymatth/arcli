@@ -20,6 +20,8 @@ const (
 	AliasesMap = "aliases"
 	// UserID is the user ID
 	UserID = "userID"
+	// CaCert is path to Redmine server SSL certificate
+	CaCert = "caCert"
 )
 
 // DefaultsKey represents default key.

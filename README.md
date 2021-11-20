@@ -107,8 +107,18 @@ docker compose down
 
 ## FAQ
 
-> My username and password is correct, but I get 404
+> My username and password is correct, but I get 403. What's the problem?
 
 On freshly installed Redmine server, REST API web service is turned off by
 default. To turn it on, go to browser, open Redmine server URL, log in with
 administrator, go to **Administrator tab > Settings > API tab** and turn on **Enable REST web service** option.
+
+> I have a server with self-signed certificate. How to connect?
+
+You can provide a self-signed certificate in login commands:
+
+```
+arcli login inline -s https://path.to.redmine.server -c path/to/cert/server.crt -u username -p password
+```
+
+To make a local development setup with SSL, check out this [guide](ssl-guide.md).
