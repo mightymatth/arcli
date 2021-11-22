@@ -3,7 +3,6 @@ module github.com/mightymatth/arcli
 go 1.17
 
 require (
-	github.com/buger/goterm v1.0.3
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/jinzhu/now v1.1.1
 	github.com/spf13/cobra v1.2.1

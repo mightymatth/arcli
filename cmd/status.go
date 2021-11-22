@@ -2,13 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/jedib0t/go-pretty/table"
+	"github.com/mightymatth/arcli/client"
+	"github.com/mightymatth/arcli/utils"
+	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"strings"
-	"sync"
-
-	"github.com/spf13/cobra"
-
-	tm "github.com/buger/goterm"
 )
 
 func newStatusCmd() *cobra.Command {
@@ -25,90 +24,69 @@ average hours per tracked time, number of issues and number of projects.`,
 }
 
 func statusFunc(_ *cobra.Command, _ []string) {
-	user := "Loading user..."
-	var today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth string
-
-	refresh := make(chan refreshData)
+	var user client.User
+	var today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth periodData
 
 	var g errgroup.Group
-	g.Go(asyncUserResult(&user, refresh))
-	g.Go(asyncPeriodResult(spentOnToday, &today, refresh))
-	g.Go(asyncPeriodResult(spentOnYesterday, &yesterday, refresh))
-	g.Go(asyncPeriodResult(spentOnThisWeek, &thisWeek, refresh))
-	g.Go(asyncPeriodResult(spentOnLastWeek, &lastWeek, refresh))
-	g.Go(asyncPeriodResult(spentOnThisMonth, &thisMonth, refresh))
-	g.Go(asyncPeriodResult(spentOnLastMonth, &lastMonth, refresh))
-
-	drawScreen := func() {
-		_, _ = tm.Println(user)
-		_, _ = tm.Println("PERIOD      ", fmt.Sprintf("%-7s %-7s %-8s %-8s",
-			"HOURS", "H/LOG", "# of I", "# of P"))
-		_, _ = tm.Println("Today       ", today)
-		_, _ = tm.Println("Yesterday   ", yesterday)
-		_, _ = tm.Println("This Week   ", thisWeek)
-		_, _ = tm.Println("Last Week   ", lastWeek)
-		_, _ = tm.Println("This Month  ", thisMonth)
-		_, _ = tm.Println("Last Month  ", lastMonth)
-		tm.Flush()
-		tm.MoveCursorUp(8)
-	}
-
-	var writing sync.WaitGroup
-	writing.Add(1)
-	go func() {
-		drawScreen()
-		for refreshData := range refresh {
-			refreshData.update()
-			drawScreen()
-		}
-
-		writing.Done()
-	}()
+	g.Go(asyncUserResult(&user))
+	g.Go(asyncPeriodResult(spentOnToday, &today))
+	g.Go(asyncPeriodResult(spentOnYesterday, &yesterday))
+	g.Go(asyncPeriodResult(spentOnThisWeek, &thisWeek))
+	g.Go(asyncPeriodResult(spentOnLastWeek, &lastWeek))
+	g.Go(asyncPeriodResult(spentOnThisMonth, &thisMonth))
+	g.Go(asyncPeriodResult(spentOnLastMonth, &lastMonth))
 
 	err := g.Wait()
-	close(refresh)
-	writing.Wait()
 
 	if err != nil {
 		fmt.Println("Failed to get status:", err)
 		return
 	}
+
+	fmt.Printf("[%d] %s %s (%s)\n", user.ID, user.FirstName, user.LastName, user.Email)
+
+	t := utils.NewTable()
+	t.AppendHeader(table.Row{"PERIOD", "HOURS", "H/LOG", "# of I", "# of P"})
+	appendRow(t, "Today", today)
+	appendRow(t, "Yesterday", yesterday)
+	appendRow(t, "This Week", thisWeek)
+	appendRow(t, "Last Week", lastWeek)
+	appendRow(t, "This Month", thisMonth)
+	appendRow(t, "Last Month", lastMonth)
+
+	t.Render()
 }
 
-func asyncUserResult(dest *string, refresh chan<- refreshData) func() error {
+func asyncUserResult(dest *client.User) func() error {
 	return func() error {
-		u, err := RClient.GetUser()
-		var result string
-		if err == nil {
-			result = fmt.Sprintf("[%d] %s %s (%s)", u.ID, u.FirstName, u.LastName, u.Email)
-		} else {
-			result = "Cannot fetch user."
+		user, err := RClient.GetUser()
+		if err != nil {
+			return err
 		}
-		refresh <- refreshData{Dest: dest, Value: result}
 
-		return err
+		*dest = *user
+
+		return nil
 	}
 }
 
-func asyncPeriodResult(t timeSpentOn, dest *string, refresh chan<- refreshData) func() error {
+func asyncPeriodResult(t timeSpentOn, dest *periodData) func() error {
 	return func() error {
 		data, err := getDataForPeriod(t)
-		var result string
-		if err == nil {
-			result = data
-		} else {
-			result = "ERR"
+		if err != nil {
+			return err
 		}
-		refresh <- refreshData{Dest: dest, Value: result}
 
-		return err
+		*dest = data
+
+		return nil
 	}
 }
 
-func getDataForPeriod(spentOn timeSpentOn) (string, error) {
+func getDataForPeriod(spentOn timeSpentOn) (periodData, error) {
 	entries, err := RClient.GetTimeEntries(fmt.Sprintf("spent_on=%s&user_id=me&limit=200", spentOn))
 	if err != nil {
-		return "", fmt.Errorf("cannot get period data (%v): %v", spentOn, err)
+		return periodData{}, fmt.Errorf("cannot get period data (%v): %v", spentOn, err)
 	}
 
 	var hoursSum float64
@@ -129,9 +107,19 @@ func getDataForPeriod(spentOn timeSpentOn) (string, error) {
 		hoursAvg = hoursSum / float64(len(entries))
 	}
 
-	return fmt.Sprintf("%-7s %-7s %-8d %-8d",
-		formatFloat(hoursSum), formatFloat(hoursAvg),
-		issueCount, projectCount), nil
+	return periodData{
+		hoursSum:     hoursSum,
+		hoursAvg:     hoursAvg,
+		issueCount:   issueCount,
+		projectCount: projectCount,
+	}, nil
+}
+
+func appendRow(t table.Writer, period string, data periodData) {
+	t.AppendRow(table.Row{
+		period, formatFloat(data.hoursSum), formatFloat(data.hoursAvg),
+		data.issueCount, data.projectCount,
+	})
 }
 
 func formatFloat(num float64) string {
@@ -150,11 +138,9 @@ const (
 	spentOnLastMonth timeSpentOn = "lm"
 )
 
-type refreshData struct {
-	Dest  *string
-	Value string
-}
-
-func (rd *refreshData) update() {
-	*rd.Dest = rd.Value
+type periodData struct {
+	hoursSum     float64
+	hoursAvg     float64
+	issueCount   int
+	projectCount int
 }
