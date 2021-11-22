@@ -45,7 +45,7 @@ func Setup() {
 
 	file, err := os.OpenFile(path.Join(home, ".arcli.yaml"), os.O_CREATE, 0666)
 	if err != nil {
-		log.Fatal("Cannot open/write configuration file", err)
+		log.Fatalln("Cannot open/write configuration file:", err)
 	} else {
 		_ = file.Close()
 	}
@@ -56,7 +56,7 @@ func Setup() {
 	err = viper.ReadInConfig()
 
 	if err != nil {
-		log.Fatal("Cannot read in configuration", err)
+		log.Fatalln("Cannot read in configuration:", err)
 	}
 }
 

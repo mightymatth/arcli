@@ -60,10 +60,12 @@ func (c *Client) GetUser() (*User, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	var userResponse UserAPIResponse
 	_, err = c.Do(req, &userResponse)
 	if err != nil {
 		return nil, err
 	}
+
 	return &(userResponse.User), nil
 }

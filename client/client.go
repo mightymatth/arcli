@@ -177,12 +177,12 @@ func getTransport() *http.Transport {
 
 	certPool, err := x509.SystemCertPool()
 	if err != nil {
-		log.Fatal("unable to get system cert pool: ", err)
+		log.Fatalln("Unable to get system cert pool:", err)
 	}
 
 	cert, err := ioutil.ReadFile(caCert)
 	if err != nil {
-		log.Fatal("cannot fetch ssl certificate: ", err)
+		log.Fatalln("Cannot fetch ssl certificate:", err)
 	}
 
 	certPool.AppendCertsFromPEM(cert)
