@@ -32,7 +32,7 @@ changelog:
       - '^test:'
 
 brews:
-  - github:
+  - tap:
       owner: mightymatth
       name: arcli
     homepage: https://github.com/mightymatth/arcli
@@ -55,4 +55,4 @@ snapcrafts:
     license: MIT
     apps:
       arcli:
-        plugs: ["home", "network"]
+        plugs: [ "home", "network" ]
