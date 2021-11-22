@@ -5,28 +5,28 @@
 class Arcli < Formula
   desc "Awesome Redmine CLI"
   homepage "https://github.com/mightymatth/arcli"
-  version "0.3.4"
+  version "0.3.5"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/mightymatth/arcli/releases/download/v0.3.4/arcli_Darwin_arm64.tar.gz"
-      sha256 "5d9023a13aebdc43b6c520431c303b8cd849a12d2b0b6c20c7f9852ffe8ac5ca"
+      url "https://github.com/mightymatth/arcli/releases/download/v0.3.5/arcli_Darwin_arm64.tar.gz"
+      sha256 "0107610fcccd38ef47cd52fe88e0e2054cd40e96dc161b2902d4d63e4f109680"
 
       def install
         bin.install "arcli"
         bash_completion.install "completions/arcli.bash" => "arcli"
-        zsh_completion.install "completions/arcli.zsh" => "_arcli
+        zsh_completion.install "completions/arcli.zsh" => "_arcli"
         fish_completion.install "completions/arcli.fish"
       end
     end
     if Hardware::CPU.intel?
-      url "https://github.com/mightymatth/arcli/releases/download/v0.3.4/arcli_Darwin_x86_64.tar.gz"
-      sha256 "8ef49e8a651962bc37daadf0ca11861529f93fa3bae2054a2529326073560f4c"
+      url "https://github.com/mightymatth/arcli/releases/download/v0.3.5/arcli_Darwin_x86_64.tar.gz"
+      sha256 "f22c00b3e38611e0f2f4e48ec219f9016c983544a99ef7a5c4025267d773a769"
 
       def install
         bin.install "arcli"
         bash_completion.install "completions/arcli.bash" => "arcli"
-        zsh_completion.install "completions/arcli.zsh" => "_arcli
+        zsh_completion.install "completions/arcli.zsh" => "_arcli"
         fish_completion.install "completions/arcli.fish"
       end
     end
@@ -34,24 +34,24 @@ class Arcli < Formula
 
   on_linux do
     if Hardware::CPU.intel?
-      url "https://github.com/mightymatth/arcli/releases/download/v0.3.4/arcli_Linux_x86_64.tar.gz"
-      sha256 "23727ddfb9a289109742f2e3b0b0145c87b96d08d6fc4606fe6467c01c141aa9"
+      url "https://github.com/mightymatth/arcli/releases/download/v0.3.5/arcli_Linux_x86_64.tar.gz"
+      sha256 "214ef27e16436a78b840e42cf1dcf2afa7cda07a6a11156df80d0fc3c847c209"
 
       def install
         bin.install "arcli"
         bash_completion.install "completions/arcli.bash" => "arcli"
-        zsh_completion.install "completions/arcli.zsh" => "_arcli
+        zsh_completion.install "completions/arcli.zsh" => "_arcli"
         fish_completion.install "completions/arcli.fish"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/mightymatth/arcli/releases/download/v0.3.4/arcli_Linux_arm64.tar.gz"
-      sha256 "6170be9cc70a339f31cca501ba22c2d18b7e80aba89d0c3a3c3a0942e4fb4d70"
+      url "https://github.com/mightymatth/arcli/releases/download/v0.3.5/arcli_Linux_arm64.tar.gz"
+      sha256 "0e00037d8794408fe84a9a50b22b1e06256e7ad579e8593a0044d6be2df3ed46"
 
       def install
         bin.install "arcli"
         bash_completion.install "completions/arcli.bash" => "arcli"
-        zsh_completion.install "completions/arcli.zsh" => "_arcli
+        zsh_completion.install "completions/arcli.zsh" => "_arcli"
         fish_completion.install "completions/arcli.fish"
       end
     end
