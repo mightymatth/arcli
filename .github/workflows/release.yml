@@ -24,9 +24,6 @@ jobs:
         with:
           snapcraft_token: ${{ secrets.SNAPCRAFT_SECRET }}
 
-      - name: Remove snap-token txt
-        run: rm snap-token.txt
-
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
