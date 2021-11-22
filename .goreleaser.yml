@@ -40,7 +40,7 @@ brews:
     install: |-
       bin.install "arcli"
       bash_completion.install "completions/arcli.bash" => "arcli"
-      zsh_completion.install "completions/arcli.zsh" => "_arcli
+      zsh_completion.install "completions/arcli.zsh" => "_arcli"
       fish_completion.install "completions/arcli.fish"
     test: |
       system "#{bin}/arcli --version"
