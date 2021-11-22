@@ -83,7 +83,7 @@ func loginFunc(_ *cobra.Command, _ []string) {
 	if caCert != "" {
 		caCertAbsPath, err := filepath.Abs(caCert)
 		if err != nil {
-			log.Fatalf("cannot fetch certificate absolute path: %v", err)
+			log.Fatalf("Cannot fetch certificate absolute path: %v\n", err)
 		}
 
 		viper.Set(config.CaCert, caCertAbsPath)
@@ -118,10 +118,10 @@ func loginFunc(_ *cobra.Command, _ []string) {
 	user := userAPIResponse.User
 	viper.Set(config.APIKey, user.APIKey)
 	viper.Set(config.UserID, user.ID)
-	writeConfigErr := viper.WriteConfig()
+	err := viper.WriteConfig()
 
-	if writeConfigErr != nil {
-		log.Fatal("Unable to save config! :S", writeConfigErr)
+	if err != nil {
+		log.Fatalln("Unable to save config:", err)
 	}
 
 	fmt.Println("You have successfully logged in!")
@@ -200,7 +200,7 @@ func logoutFunc(_ *cobra.Command, _ []string) {
 	err := viper.WriteConfig()
 
 	if err != nil {
-		log.Fatal("Unable to save configuration", err)
+		log.Fatalln("Unable to save configuration:", err)
 	}
 
 	fmt.Println("You have successfully logged out!")
