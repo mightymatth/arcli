@@ -5,12 +5,12 @@
 class Arcli < Formula
   desc "Awesome Redmine CLI"
   homepage "https://github.com/mightymatth/arcli"
-  version "0.3.6"
+  version "0.3.8"
 
   on_macos do
-    if Hardware::CPU.intel?
-      url "https://github.com/mightymatth/arcli/releases/download/v0.3.6/arcli_Darwin_x86_64.tar.gz"
-      sha256 "336ebc809b452ce254765fcad6f4eee2c352efe5127fbe808b85866281bf06b8"
+    if Hardware::CPU.arm?
+      url "https://github.com/mightymatth/arcli/releases/download/v0.3.8/arcli_Darwin_arm64.tar.gz"
+      sha256 "0a0bce4cc04dc1d23b5df550888e076f4ce0da248f9873fd86b4a3adb5ee7d54"
 
       def install
         bin.install "arcli"
@@ -19,9 +19,9 @@ class Arcli < Formula
         fish_completion.install "completions/arcli.fish"
       end
     end
-    if Hardware::CPU.arm?
-      url "https://github.com/mightymatth/arcli/releases/download/v0.3.6/arcli_Darwin_arm64.tar.gz"
-      sha256 "c8f09537602ee9acc8f6a6298513e1d8029ac57e42907753c8a5d5733b519a46"
+    if Hardware::CPU.intel?
+      url "https://github.com/mightymatth/arcli/releases/download/v0.3.8/arcli_Darwin_x86_64.tar.gz"
+      sha256 "d1c734ee9e27ed235ca263b19e44f712f0ef43c00663dc2970535067351de4ee"
 
       def install
         bin.install "arcli"
@@ -34,8 +34,8 @@ class Arcli < Formula
 
   on_linux do
     if Hardware::CPU.intel?
-      url "https://github.com/mightymatth/arcli/releases/download/v0.3.6/arcli_Linux_x86_64.tar.gz"
-      sha256 "f7bdef8fcb7c5b6a83694a9761d5ab7598bea969f5abd7c7fb09b096358e3e0b"
+      url "https://github.com/mightymatth/arcli/releases/download/v0.3.8/arcli_Linux_x86_64.tar.gz"
+      sha256 "da95ff6ad76ec72ce17d5cbd9215df8b14ac183a80b53c3252ce4037ed9cf5a6"
 
       def install
         bin.install "arcli"
@@ -45,8 +45,8 @@ class Arcli < Formula
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/mightymatth/arcli/releases/download/v0.3.6/arcli_Linux_arm64.tar.gz"
-      sha256 "03ac68a6a33ce148a445da50aabb93a47a38abce470d075c8053f4843ac393b5"
+      url "https://github.com/mightymatth/arcli/releases/download/v0.3.8/arcli_Linux_arm64.tar.gz"
+      sha256 "2e87258cced90e672e6abf439d0aea2285e0d8c2f1500d3a9d74f20c83df4921"
 
       def install
         bin.install "arcli"
