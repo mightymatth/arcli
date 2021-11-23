@@ -3,7 +3,7 @@
 before:
   hooks:
     - go mod tidy
-    - sh scripts/completions.sh
+    - ./scripts/completions.sh
 
 builds:
   - env:
