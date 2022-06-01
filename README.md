@@ -73,11 +73,12 @@ Usage:
 
 Available Commands:
   aliases     Words that can be used instead of issue or project ids
+  completion  Generate the autocompletion script for the specified shell
   defaults    User session defaults
   help        Help about any command
   issues      Shows issue details
   log         Time entries on projects and issues
-  login       Authenticate to Redmine server
+  login       Opens login interactive login session
   logout      Logout current user
   projects    Shows project details
   search      Search Redmine
