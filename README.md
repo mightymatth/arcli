@@ -106,6 +106,16 @@ go run main.go login inline -s http://localhost:3000 -u admin -p admin
 docker compose down
 ```
 
+## Release
+
+CLI is released using [goreleaser](https://goreleaser.com/) via GitHub Releases, using GitHub Actions.
+
+To run a dry release locally, install [goreleaser](https://goreleaser.com/install/) and run:
+```
+goreleaser release --skip-publish --skip-validate --clean
+```
+... and the artifacts will be in `dist/`.
+
 ## FAQ
 
 > My username and password is correct, but I get 403. What's the problem?
