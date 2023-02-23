@@ -1,6 +1,6 @@
 module github.com/mightymatth/arcli
 
-go 1.18
+go 1.20
 
 require (
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
