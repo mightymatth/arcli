@@ -21,8 +21,6 @@ jobs:
 
       - name: Install Snapcraft
         uses: samuelmeuli/action-snapcraft@v1
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_SECRET }}
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
@@ -32,3 +30,7 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # run locally `snapcraft export-login -`,
+          # set to SNAPCRAFT_STORE_CREDENTIALS in GitHub Secrets,
+          # token valid for one year.
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
