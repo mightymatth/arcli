@@ -17,7 +17,13 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
+
       - uses: samuelmeuli/action-snapcraft@v2
+      # fix build issue with snapcraft
+      # source: https://github.com/goreleaser/goreleaser/issues/1715#issuecomment-667002748
+      - run: |
+          mkdir -p $HOME/.cache/snapcraft/download
+          mkdir -p $HOME/.cache/snapcraft/stage-packages
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
