@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/jinzhu/now v1.1.5
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.12.0
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e
 	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29
@@ -18,7 +18,7 @@ require (
 	github.com/go-openapi/strfmt v0.21.2 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
