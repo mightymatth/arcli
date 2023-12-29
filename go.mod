@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/jinzhu/now v1.1.5
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.17.0
 	golang.org/x/crypto v0.17.0
 	golang.org/x/sync v0.4.0
